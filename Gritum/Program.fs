@@ -1,5 +1,4 @@
 ﻿open Microsoft.AspNetCore.Builder
-open Microsoft.Extensions.Hosting
 open Giraffe
 
 let webApp =
@@ -10,9 +9,9 @@ let webApp =
 
 [<EntryPoint>]
 let main args =
-    let builder = WebApplication.CreateBuilder(args)
+    let builder = WebApplication.CreateBuilder args
     let app = builder.Build()
-    app.UseGiraffe(webApp)
-    app.Run("http://127.0.0.1:3000")
+    app.UseGiraffe webApp
+    app.Run "http://127.0.0.1:3000"
     0
 
