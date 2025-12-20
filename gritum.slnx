@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="Gritum.Tests/Gritum.Tests.fsproj" />
-  <Project Path="Gritum/Gritum.fsproj" />
+  <Project Path="src/Gritum.Tests/Gritum.Tests.fsproj" />
+  <Project Path="src/Gritum/Gritum.fsproj" />
 </Solution>
