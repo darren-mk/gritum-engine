@@ -1,45 +1,6 @@
 (ns gritum.core)
 
-(defn jump-map [xml k]
-  (when (= k (:tag xml)) (:content xml)))
-
-(defn jump-vec [xml k]
-  (let [picked (filter #(= k (:tag %)) xml)]
-    (if (= 1 (count picked))
-       (:content (first picked))
-       (throw (ex-info "multiple nodes with same tag"
-                       {:key k
-                        :xml xml})))))
-
-(defn jump [xml k]
-  (cond (map? xml) (jump-map xml k)
-        (sequential? xml) (jump-vec xml k)
-        :else (throw (ex-info "unknown structure in xml" {}))))
-
-(defn traverse [xml ks]
-  (reduce jump xml ks))
-
-(def loan-path
-  [:MESSAGE :DOCUMENT_SETS
-   :DOCUMENT_SET :DOCUMENTS
-   :DOCUMENT :DEAL_SETS :DEAL_SET
-   :DEALS :DEAL :LOANS :LOAN])
-
-(def zero-tolerance-fee-types
-  #{"AppraisalFee" "CreditReportFee"
-    "FloodDeterminationFee" 
-    "AppraisalFieldReviewFee"
-    "TaxServiceFee"})
-
-(defn ->tolerance [section fee-type]
-  (case section
-    ("OriginationCharges" "ServicesYouCannotShopFor") 0.0
-    ("ServicesYouCanShopFor") 0.1
-    ("ServicesBorrowerDidNotShopFor") (if (zero-tolerance-fee-types fee-type) 0.0 0.1)
-    ("TaxesAndOtherGovernmentFees") (if (= fee-type "RecordingFee") 0.1 0.0)
-    ("Prepaids" "InitialEscrowPaymentAtClosing"
-     "ServicesBorrowerDidShopFor" "OtherCosts") nil))
-
+#_#_#_#_#_
 (defmulti normalize
   (fn [_ k] k))
 
@@ -51,7 +12,8 @@
                    (filter #(= :FEE_PAYMENT (:tag %)) (:content payments-node)))
         section (->> [:IntegratedDisclosureSectionType] (traverse detail) first)
         fee-type (->> [:EXTENSION :OTHER :FEE_DETAIL_EXTENSION :FeeItemType]
-                      (traverse detail) first)]
+                      (traverse detail) first)
+        in-apr? (contains? apr-mandatory-fees fee-type)]
     #:fee{:type fee-type :section section
           :tolerance (->tolerance section fee-type)
           :amount (if (seq payments)
@@ -60,6 +22,8 @@
                          (map #(->> [:FEE_PAYMENT :FeeActualPaymentAmount] (traverse %) first parse-double))
                          (reduce + 0.0))
                     0.0)
+          :in-apr? in-apr?
+          
           :paid-by "Buyer"}))
 
 (defn ->domain [xml]
