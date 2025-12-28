@@ -75,12 +75,12 @@
     (dotimes [_ 50]
       (let [random-fee (mg/generate sut/Fee)
             mock-xml (mock-fee-xml
-                       {:section "OriginationCharges"
-                        :fee-type "ApplicationFee"
-                        :payments (mapv (fn [p]
-                                          {:amount (:amount p)
-                                           :paid-by "Buyer"
-                                           :timing (:timing p)})
-                                        (:payments random-fee))})
+                      {:section "OriginationCharges"
+                       :fee-type "ApplicationFee"
+                       :payments (mapv (fn [p]
+                                         {:amount (:amount p)
+                                          :paid-by "Buyer"
+                                          :timing (:timing p)})
+                                       (:payments random-fee))})
             result (sut/->fee mock-xml)]
         (is (m/validate sut/Fee result))))))

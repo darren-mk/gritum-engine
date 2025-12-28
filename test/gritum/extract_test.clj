@@ -1,7 +1,8 @@
 (ns gritum.extract-test
   (:require
    [clojure.test :as t]
-   [gritum.extract :as sut]))
+   [gritum.extract :as sut]
+   [gritum.test-helper :as h]))
 
 (t/deftest jump-map-test
   (let [sample {:tag :A :content ["val"]}]
@@ -98,3 +99,11 @@
              (-> [{:tag :Container :content
                    [{:tag :Child :content ["Val"]}]}]
                  sut/->edn first :Container))))))
+
+(t/deftest ucd-xml-tests
+  (let [xml (h/load-xml "data/Purchase ARM UCD v2.0.xml")
+        path [:MESSAGE :DOCUMENT_SETS :DOCUMENT_SET :DOCUMENTS
+              :DOCUMENT :DEAL_SETS :DEAL_SET :DEALS :DEAL :LOANS
+              :LOAN :FEE_INFORMATION :FEES]
+        fee-xmls (sut/traverse xml path)]
+    (t/is (= 24 (count fee-xmls)))))

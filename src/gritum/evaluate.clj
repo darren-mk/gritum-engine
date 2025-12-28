@@ -6,14 +6,21 @@
    [gritum.rules.zero-percent-tolerance :as zero]
    [gritum.rules.ten-percent-tolerance :as ten]))
 
+(def path-to-fees
+  [:MESSAGE :DOCUMENT_SETS :DOCUMENT_SET
+   :DOCUMENTS :DOCUMENT :DEAL_SETS :DEAL_SET :DEALS
+   :DEAL :LOANS :LOAN :FEE_INFORMATION :FEES])
+
 (defn- extract-fees
-  "Locates all FEE nodes within the deeply nested MISMO/UCD structure."
+  "Locates all FEE nodes within the
+  deeply nested MISMO/UCD structure."
+  {:malli/schema [:=> [:cat dom/Xml]
+                  [:vector dom/Fees]]}
   [xml]
-  (let [path [:MESSAGE :DOCUMENT :DEAL_SETS :DEAL :LOANS :LOAN :FEE_INFORMATION :FEES]
-        fees (ext/traverse xml path)]
-    (->> fees
-         (filter #(= :FEE (:tag %)))
-         (mapv dom/->fee))))
+  (->> path-to-fees
+       (ext/traverse xml)
+       (filter #(= :FEE (:tag %)))
+       (mapv dom/->fee)))
 
 (defn perform
   "Evaluates all tolerance rules and returns an aggregated result report."
