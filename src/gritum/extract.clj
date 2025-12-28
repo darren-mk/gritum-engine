@@ -5,14 +5,16 @@
 
 (defn jump-vec [xml k]
   (let [picked (filter #(= k (:tag %)) xml)]
-    (if (= 1 (count picked))
-       (:content (first picked))
-       (throw (ex-info "multiple nodes with same tag"
-                       {:key k})))))
+    (case (count picked)
+      0 nil
+      1 (:content (first picked))
+      (throw (ex-info "multiple nodes with same tag"
+                      {:key k})))))
 
 (defn jump [xml k]
   (cond (map? xml) (jump-map xml k)
         (sequential? xml) (jump-vec xml k)
+        (nil? xml) xml
         :else (throw (ex-info "unknown structure in xml"
                               {:key k}))))
 

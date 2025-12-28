@@ -16,7 +16,7 @@
     (t/testing "returns content when exactly one matching tag exists in the list"
       (t/is (= [1] (sut/jump-vec sample :A))))
     (t/testing "throws exception if tag is missing or duplicated"
-      (t/is (thrown? clojure.lang.ExceptionInfo (sut/jump-vec sample :C)))
+      (t/is (nil? (sut/jump-vec sample :C)))
       (let [dups [{:tag :A} {:tag :A}]]
         (t/is (thrown? clojure.lang.ExceptionInfo (sut/jump-vec dups :A)))))))
 
