@@ -35,7 +35,8 @@
   (ring/ring-handler
    (ring/router
     routes
-    {:data {:middleware [wrap-params
-                         wrap-multipart-params
-                         mw/inject-headers-in-resp
-                         mw/turn-resp-body-to-bytes]}})))
+    {:data {:middleware [mw/inject-headers-in-resp
+                         mw/turn-resp-body-to-bytes
+                         mw/wrap-exception
+                         wrap-params
+                         wrap-multipart-params]}})))

@@ -11,7 +11,6 @@
           response (middleware {})]
       (is (= "application/json; charset=utf-8"
              (get-in response [:headers "Content-Type"])))))
-
   (testing "should return nil if the handler returns nil"
     (let [mock-handler (fn [_] nil)
           middleware (sut/inject-headers-in-resp mock-handler)
@@ -26,10 +25,25 @@
           response (middleware {})]
       (is (bytes? (:body response)))
       (is (= data (json/read-value (:body response) json/keyword-keys-object-mapper)))))
-
   (testing "should return response as is if body is missing"
     (let [mock-handler (fn [_] {:status 204})
           middleware (sut/turn-resp-body-to-bytes mock-handler)
           response (middleware {})]
       (is (not (contains? response :body)))
       (is (= 204 (:status response))))))
+
+(deftest wrap-exception-test
+  (testing "should catch generic exception and return 500"
+    (let [mock-handler (fn [_] (throw (Exception. "Critical engine failure")))
+          middleware (sut/wrap-exception mock-handler)
+          response (middleware {})]
+      (is (= 500 (:status response)))
+      (is (= "Critical engine failure" (get-in response [:body :message])))
+      (is (= "Internal Server Error" (get-in response [:body :error])))))
+  (testing "should return specific status code when using ex-info"
+    (let [mock-handler (fn [_] (throw (ex-info "Invalid XML" {:status 400})))
+          middleware (sut/wrap-exception mock-handler)
+          response (middleware {})]
+      (is (= 400 (:status response)))
+      (is (= "Invalid XML" (get-in response [:body :message])))
+      (is (= "Client Error" (get-in response [:body :error]))))))

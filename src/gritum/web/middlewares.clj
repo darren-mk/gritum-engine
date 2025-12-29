@@ -1,6 +1,7 @@
 (ns gritum.web.middlewares
   (:require
-   [jsonista.core :as json]))
+   [jsonista.core :as json]
+   [taoensso.timbre :as log]))
 
 (defn inject-headers-in-resp [handler]
   (let [m {"Content-Type"
@@ -19,3 +20,16 @@
         (if body
           (update resp :body f)
           resp)))))
+
+(defn wrap-exception [handler]
+  (fn [req]
+    (try
+      (handler req)
+      (catch Throwable e
+        (log/error e "Unhandled exception occurred during request")
+        (let [error-data (ex-data e)
+              status (:status error-data 500)]
+          {:status status
+           :body {:error (if (= status 500) "Internal Server Error" "Client Error")
+                  :message (.getMessage e)
+                  :type (.getSimpleName (class e))}})))))
