@@ -6,10 +6,14 @@
    [gritum.engine.api.router :as router]
    [taoensso.timbre :as log]))
 
+(defn get-port []
+  (Integer/parseInt
+   (or (System/getenv "PORT") "3000")))
+
 (def config
   {:gritum.web/app {}
    :gritum.web/server
-   {:port 8000
+   {:port (get-port)
     :handler (ig/ref :gritum.web/app)}})
 
 (defmethod ig/init-key :gritum.web/app [_ _]
@@ -30,4 +34,5 @@
     (.addShutdownHook
      (Runtime/getRuntime)
      (Thread. #(ig/halt! system)))
-    (log/info "Gritum Web is running.")))
+    (log/info "gritum engine is running on port "
+              (get-port))))
