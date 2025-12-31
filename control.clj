@@ -21,12 +21,14 @@
              :out cstr/trim)
         image-name "gritum-engine"
         tag "latest"]
-    (assert (= (str "bitem-gritum-" (name env))
-               project-id))
-    {:env env
+    (assert (= (str "bitem-gritum-" (name env)) project-id)
+            (format (str "mismatch: requested [%s] but "
+                         "gcloud project is set to [%s]!")
+                    (name env) project-id))
+    {:env env :region region
      :project-id project-id
      :image-name image-name
-     :tag tag :region region}))
+     :tag tag}))
 
 (defn build []
   (b/shell "clojure" "-T:build" "uberjar"))
