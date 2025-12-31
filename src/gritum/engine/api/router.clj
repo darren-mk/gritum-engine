@@ -25,8 +25,8 @@
        :body {:error "Missing files"
               :details "le-file and cd-file are required"}})))
 
-(defn app [{:keys [auth-fn]}]
-  (let [auth-mw (mw/wrap-api-key-auth auth-fn)]
+(defn app [{:keys [prod? auth-fn]}]
+  (let [auth-mw (mw/wrap-api-key-auth prod? auth-fn)]
     (ring/ring-handler
      (ring/router
       ["/api"

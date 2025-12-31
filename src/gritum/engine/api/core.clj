@@ -7,6 +7,16 @@
    [gritum.engine.api.router :as router]
    [taoensso.timbre :as log]))
 
+(defn get-env []
+  (let [env-str (System/getenv "GRITUM_ENV")]
+    (case env-str
+      ("prod" "production") :prod
+      "staging" :staging
+      :local)))
+
+(defn prod? []
+  (= :prod (get-env)))
+
 (defn get-port []
   (Integer/parseInt
    (or (System/getenv "PORT") "3000")))
@@ -14,7 +24,8 @@
 (def config
   {:gritum.engine.api/auth {}
    :gritum.engine.api/app
-   {:auth-fn (ig/ref :gritum.engine.api/auth)}
+   {:prod? (prod?)
+    :auth-fn (ig/ref :gritum.engine.api/auth)}
    :gritum.engine.api/server
    {:port (get-port)
     :handler (ig/ref :gritum.engine.api/app)}})
@@ -24,7 +35,7 @@
   (auth/create-auth-service {}))
 
 (defmethod ig/init-key :gritum.engine.api/app
-  [_ {:keys [_auth-fn] :as injection}]
+  [_ injection]
   (log/info "Initializing Web Router...")
   (router/app injection))
 

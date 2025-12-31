@@ -47,13 +47,13 @@
         (let [resp (handler req)]
           (if resp (update resp :headers merge headers) resp))))))
 
-(defn wrap-api-key-auth [check-fn]
+(defn wrap-api-key-auth
+  {:malli/schema [:=> [:cat :boolean :any] :any]}
+  [prod? check-fn]
   (fn [handler]
     (fn [req]
       (let [api-key (get-in req [:headers "x-api-key"])]
-        (if (and api-key (check-fn api-key))
+        (if (and api-key (check-fn prod? api-key))
           (handler req)
           {:status 401
            :body {:error "Unauthorized"}})))))
-
-

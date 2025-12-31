@@ -5,18 +5,18 @@
    [malli.dev :as mdev]
    [malli.dev.pretty :as pretty]))
 
-(defn inst! []
+(defn inst []
   (mdev/start!
    {:report (pretty/reporter)}))
 
-(defn unst! []
+(defn unst []
   (mdev/stop!))
 
 (set-prep! (fn [] w/config))
 
 (comment
-  (inst!)
-  (unst!)
+  (inst)
+  (unst)
   (go)
   (halt)
   (reset))
