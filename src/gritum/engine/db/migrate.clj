@@ -1,17 +1,12 @@
 (ns gritum.engine.db.migrate
   (:require
-   [clojure.edn :as edn]
-   [clojure.string :as cstr]
-   [clojure.java.io :as io]
    [gritum.engine.infra :as inf]
    [migratus.core :as migratus]))
 
-(defn get-config
+(defn ->mig-config
   {:malli/schema [:=> [:cat inf/Env] inf/MigrationConfig]}
   [env]
-  (let [config (-> "config.edn" io/file
-                   slurp edn/read-string)
-        {:keys [db migration]} (get config env)]
+  (let [{:keys [db migration]} (get (inf/->config) env)]
     (if db {:store :database
             :migration-dir (:dir migration)
             :db db}
@@ -22,12 +17,12 @@
   we follow forward-only principle"
   {:malli/schema [:=> [:cat inf/Env :string] :any]}
   [env name]
-  (migratus/create (get-config env) name))
+  (migratus/create (->mig-config env) name))
 
 (defn run
   {:malli/schema [:=> [:cat inf/Env] :any]}
   [env]
-  (let [config (get-config env)]
+  (let [config (->mig-config env)]
     (println (str "🚀 running migrations for [" env "]..."))
     (migratus/migrate config)))
 

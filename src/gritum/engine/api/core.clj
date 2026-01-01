@@ -5,26 +5,20 @@
    [org.httpkit.server :as http]
    [gritum.engine.auth :as auth]
    [gritum.engine.api.router :as router]
+   [gritum.engine.db.core]
+   [gritum.engine.infra :as inf]
    [taoensso.timbre :as log]))
 
-(defn get-env []
-  (let [env-str (System/getenv "GRITUM_ENV")]
-    (case env-str
-      ("prod" "production") :prod
-      "staging" :staging
-      :local)))
-
-(defn prod? []
-  (= :prod (get-env)))
-
 (defn get-port []
-  (Integer/parseInt
-   (or (System/getenv "PORT") "3000")))
+  (:port (inf/->context)))
 
 (def config
-  {:gritum.engine.api/auth {}
+  {:gritum.engine.db/pool
+   (->> (inf/->context) :env
+        (get (inf/->config)) :db)
+   :gritum.engine.api/auth {}
    :gritum.engine.api/app
-   {:prod? (prod?)
+   {:prod? (inf/prod?)
     :auth-fn (ig/ref :gritum.engine.api/auth)}
    :gritum.engine.api/server
    {:port (get-port)
