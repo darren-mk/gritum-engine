@@ -27,16 +27,17 @@
                    "_" key-id "_" secret)}))
 
 (defn create!
-  {:malli/schema [:=> [:cat :any :uuid :int] :string]}
-  [ds client-id usage-limit]
-  (let [env (:env (inf/->context))
-        {:keys [key-id secret raw-key]} (gen-token env)]
-    (sql/insert! ds :api_keys
-                 {:client_id client-id
-                  :key_id key-id
-                  :hashed_key (hs/derive secret)
-                  :usage_limit  usage-limit})
-    raw-key))
+  ([ds client-id]
+   (create! ds client-id 10))
+  ([ds client-id usage-limit]
+   (let [env (:env (inf/->context))
+         {:keys [key-id secret raw-key]} (gen-token env)]
+     (sql/insert! ds :api_keys
+                  {:client_id client-id
+                   :key_id key-id
+                   :hashed_key (hs/derive secret)
+                   :usage_limit  usage-limit})
+     raw-key)))
 
 (defn verify!
   {:malli/schema [:=> [:cat :any :string] :map]}
@@ -49,9 +50,33 @@
         (when (and hashed_key (hs/check secret hashed_key))
           k)))))
 
+(defn list-by-client
+  {:malli/schema [:=> [:cat :any :uuid] [:sequential :any]]}
+  [ds client-id]
+  (sql/query ds ["SELECT key_id, created_at, usage_count, usage_limit 
+                  FROM api_keys 
+                  WHERE client_id = ? 
+                  ORDER BY created_at DESC" client-id]))
+
 (comment
   (require
    '[integrant.repl.state :as irs])
+
+  (let [ds (:gritum.engine.db/pool irs/system)]
+    (list-by-client ds #uuid "d0deca17-5594-470a-b85f-b7c52e39d33a"))
+  ;; => [#:api_keys{:key_id "f38ab5a80fdc",
+  ;;                :created_at #inst "2026-01-02T14:54:31.334336000-00:00",
+  ;;                :usage_count 0,
+  ;;                :usage_limit 10}
+  ;;     #:api_keys{:key_id "7a7f00b006ff",
+  ;;                :created_at #inst "2026-01-02T14:54:10.883906000-00:00",
+  ;;                :usage_count 0,
+  ;;                :usage_limit 10}
+  ;;     #:api_keys{:key_id "8b5c65de2e0d",
+  ;;                :created_at #inst "2026-01-02T14:44:58.514786000-00:00",
+  ;;                :usage_count 0,
+  ;;               :usage_limit 10}]
+
   (let [ds (:gritum.engine.db/pool irs/system)]
     (create! ds #uuid "d0deca17-5594-470a-b85f-b7c52e39d33a" 10))
   ;; => "bitem_test_f38ab5a80fdc_47e5690e2705fca515b2b556584fbd962fdccb9f72b7fed33926c76fbdcd3153"

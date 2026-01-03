@@ -4,6 +4,7 @@
    [gritum.engine.api.middlewares :as mw]
    [gritum.engine.core :as core]
    [gritum.engine.db.client :as db.client]
+   [gritum.engine.db.api-key :as db.api-key]
    [ring.middleware.multipart-params :as multp]
    [ring.middleware.params :as midp]
    [ring.util.http-response :as resp]
@@ -62,6 +63,22 @@
     (resp/ok {:id id})
     (resp/unauthorized)))
 
+(defn create-api-key-handler [ds]
+  (fn [req]
+    (if-let [client-id (get-in req [:session :identity])]
+      (let [new-key (db.api-key/create! ds client-id)
+            msg "API key created successfully. Please save it now."]
+        (resp/ok {:api_key new-key
+                  :message msg}))
+      (resp/unauthorized))))
+
+(defn list-api-keys-handler [ds]
+  (fn [req]
+    (if-let [client-id (get-in req [:session :identity])]
+      (let [keys (db.api-key/list-by-client ds client-id)]
+        (resp/ok {:api_keys keys}))
+      (resp/unauthorized))))
+
 (defn app [{:keys [ds]}]
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
@@ -72,10 +89,11 @@
         ["/v1"
          ["/ping" {:get pong-handler}]
          ["/evaluate" {:post evaluate-handler}]]]
-       ["/public"
-        ["/signup" {:post (signup-handler ds)}]
-        ["/login" {:post (login-handler ds)}]]
        ["/dashboard" {:middleware [mw/wrap-session]}
+        ["/signup" {:post (signup-handler ds)}]
+        ["/login" {:post (login-handler ds)}]
+        ["/api-keys" {:get (list-api-keys-handler ds)
+                      :post (create-api-key-handler ds)}]
         ["/logout" {:post logout-handler}]
         ["/me" {:get me-handler}]]]
       {:data {:middleware [mw/wrap-exception
