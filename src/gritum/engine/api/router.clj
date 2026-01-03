@@ -6,7 +6,8 @@
    [gritum.engine.db.client :as db.client]
    [ring.middleware.multipart-params :as multp]
    [ring.middleware.params :as midp]
-   [ring.util.http-response :as resp]))
+   [ring.util.http-response :as resp]
+   [taoensso.timbre :as log]))
 
 (defn- handle-health [_]
   {:status 200
@@ -41,23 +42,42 @@
   (-> (resp/ok {:message "Logged out"})
       (assoc :session nil)))
 
+(defn signup-handler [ds]
+  (fn [{:keys [body] :as _req}]
+    (let [{:keys [email password]} body]
+      (try
+        (let [new-client (db.client/register! ds email password)]
+          (resp/ok {:message "Account created successfully"
+                    :email (:clients/email new-client)}))
+        (catch Exception e
+          (log/error "Signup failed:" (.getMessage e))
+          (resp/bad-request {:error "Signup failed"
+                             :details "Email might already be in use"}))))))
+
+(defn pong-handler [_]
+  (resp/ok {:message "pong"}))
+
+(defn me-handler [req]
+  (if-let [id (get-in req [:session :identity])]
+    (resp/ok {:id id})
+    (resp/unauthorized)))
+
 (defn app [{:keys [ds]}]
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
      (ring/router
       ["/api"
        ["/health" {:get handle-health}]
-       ["/services"
-        ["/v1" {:middleware [auth-mw]}
-         ["/ping" {:get (fn [_] (resp/ok {:message "pong"}))}]
+       ["/services"  {:middleware [auth-mw]}
+        ["/v1"
+         ["/ping" {:get pong-handler}]
          ["/evaluate" {:post evaluate-handler}]]]
+       ["/public"
+        ["/signup" {:post (signup-handler ds)}]
+        ["/login" {:post (login-handler ds)}]]
        ["/dashboard" {:middleware [mw/wrap-session]}
-        ["/login" {:post (login-handler ds)}]
         ["/logout" {:post logout-handler}]
-        ["/me" {:get (fn [req]
-                       (if-let [id (get-in req [:session :identity])]
-                         (resp/ok {:id id})
-                         (resp/unauthorized)))}]]]
+        ["/me" {:get me-handler}]]]
       {:data {:middleware [mw/wrap-exception
                            mw/wrap-api-cors
                            mw/inject-headers-in-resp
