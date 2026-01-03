@@ -8,20 +8,20 @@
   (->> {:email email
         :password_hash
         (hs/derive raw-password)}
-       (sql/insert! ds :clients)))
+       (sql/insert! ds :client)))
 
 (defn get-by-email
   [ds email]
   (->> {:email email}
-       (sql/find-by-keys ds :clients)
+       (sql/find-by-keys ds :client)
        first))
 
 (defn authenticate
   [ds email attempt]
-  (let [{:keys [:clients/password_hash] :as client}
+  (let [{:keys [:client/password_hash] :as client}
         (get-by-email ds email)]
     (when (and client (hs/check attempt password_hash))
-      (dissoc client :clients/password_hash))))
+      (dissoc client :client/password_hash))))
 
 (comment
   (require

@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS clients RENAME TO client;
+--;;
+ALTER TABLE IF EXISTS api_keys RENAME TO api_key;

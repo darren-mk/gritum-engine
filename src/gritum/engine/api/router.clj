@@ -35,8 +35,8 @@
           client (db.client/authenticate ds email password)]
       (if client
         (-> (resp/ok {:message "Login successful"
-                      :user (:clients/name client)})
-            (assoc :session {:identity (:clients/id client)}))
+                      :user (:client/name client)})
+            (assoc :session {:identity (:client/id client)}))
         (resp/unauthorized {:error "Invalid email or password"})))))
 
 (defn logout-handler [_req]
@@ -49,7 +49,7 @@
       (try
         (let [new-client (db.client/register! ds email password)]
           (resp/ok {:message "Account created successfully"
-                    :email (:clients/email new-client)}))
+                    :email (:client/email new-client)}))
         (catch Exception e
           (log/error "Signup failed:" (.getMessage e))
           (resp/bad-request {:error "Signup failed"
@@ -75,8 +75,8 @@
 (defn list-api-keys-handler [ds]
   (fn [req]
     (if-let [client-id (get-in req [:session :identity])]
-      (let [keys (db.api-key/list-by-client ds client-id)]
-        (resp/ok {:api_keys keys}))
+      (let [api-keys (db.api-key/list-by-client ds client-id)]
+        (resp/ok {:api-keys api-keys}))
       (resp/unauthorized))))
 
 (defn app [{:keys [ds]}]
