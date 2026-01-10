@@ -5,17 +5,13 @@
    [org.httpkit.server :as http]
    [gritum.engine.api.router :as router]
    [gritum.engine.db.core]
-   [gritum.engine.infra :as inf]
+   [gritum.engine.configs :as configs]
    [taoensso.timbre :as log]))
 
-(defn get-port []
-  (:port (inf/->context)))
-
 (def config
-  {:gritum.engine.db/pool (->> (inf/->context) :env
-                               (get (inf/->config)) :db)
+  {:gritum.engine.db/pool (configs/get-db-config)
    :gritum.engine.api/app {:ds (ig/ref :gritum.engine.db/pool)}
-   :gritum.engine.api/server {:port (get-port)
+   :gritum.engine.api/server {:port (configs/get-port)
                               :handler (ig/ref :gritum.engine.api/app)}})
 
 (defmethod ig/init-key :gritum.engine.api/app
@@ -40,4 +36,4 @@
      (Runtime/getRuntime)
      (Thread. #(ig/halt! system)))
     (log/info "gritum engine is running on port "
-              (get-port))))
+              (configs/get-port))))

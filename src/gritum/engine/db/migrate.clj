@@ -1,31 +1,28 @@
 (ns gritum.engine.db.migrate
   (:require
-   [gritum.engine.infra :as inf]
+   [gritum.engine.configs :as configs]
    [migratus.core :as migratus]))
 
-(defn ->mig-config
-  {:malli/schema [:=> [:cat inf/Env] inf/MigrationConfig]}
-  [env]
-  (let [{:keys [db migration]} (get (inf/->config) env)]
-    (if db {:store :database
-            :migration-dir (:dir migration)
-            :db (assoc db :user (:username db))}
-        (throw (ex-info "no config found" {:env env})))))
+(defn get-mig-config
+  {:malli/schema
+   [:=> [:cat] configs/MigrationConfig]}
+  []
+  {:store :database
+   :migration-dir "migrations"
+   :db (configs/get-db-config)})
 
 (defn create
   "populates up migration file only as
   we follow forward-only principle"
-  {:malli/schema [:=> [:cat inf/Env :string] :any]}
-  [env name]
-  (migratus/create (->mig-config env) name))
+  {:malli/schema [:=> [:cat :string] :any]}
+  [name]
+  (migratus/create (get-mig-config) name))
 
-(defn run
-  {:malli/schema [:=> [:cat inf/Env] :any]}
-  [env]
-  (let [config (->mig-config env)]
-    (println (str "🚀 running migrations for [" env "]..."))
-    (migratus/migrate config)))
+(defn run []
+  (let [config (get-mig-config)]
+    (println "🚀 running migrations")
+    (migratus/migrate config)
+    (println "✅ migrations completed successfully.")))
 
-(defn -main [& args]
-  (let [env (keyword (or (first args) "local"))]
-    (run env)))
+(defn -main [& _args]
+  (run))

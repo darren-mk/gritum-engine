@@ -5,11 +5,11 @@
    [next.jdbc.sql :as sql]
    [buddy.hashers :as hs]
    [crypto.random :as random]
-   [gritum.engine.infra :as inf]))
+   [gritum.engine.configs :as configs]))
 
 (defn ->env-indicator
   {:malli/schema
-   [:=> [:cat inf/Env] :string]}
+   [:=> [:cat configs/Env] :string]}
   [env]
   (case env
     :prod "live"
@@ -18,11 +18,11 @@
 
 (defn gen-token
   {:malli/schema
-   [:=> [:cat inf/Env] :map]}
+   [:=> [:cat configs/Env] :map]}
   [env]
   (let [key-id (random/hex 6)
         secret (random/hex 32)
-        env-indicator  (->env-indicator env)]
+        env-indicator (->env-indicator env)]
     {:key-id key-id :secret secret
      :raw-key (str "bitem" "_" env-indicator
                    "_" key-id "_" secret)}))
@@ -31,7 +31,7 @@
   ([ds client-id]
    (create! ds client-id 10))
   ([ds client-id usage-limit]
-   (let [env (:env (inf/->context))
+   (let [env (configs/get-env)
          {:keys [key-id secret raw-key]} (gen-token env)]
      (sql/insert! ds :api_key
                   {:client_id client-id
