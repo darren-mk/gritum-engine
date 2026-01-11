@@ -1,48 +1,42 @@
-(require
- '[babashka.tasks :as b]
- '[clojure.edn :as edn]
- '[clojure.java.io :as io])
-
-(def inputs
-  *command-line-args*)
-
-(def env
-  (keyword (or (first inputs) "prod")))
-
-(def action
-  (keyword (or (second inputs) "all")))
+(ns control
+  (:require [babashka.process :as b]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]))
 
 (defn get-config [env]
-  (let [all-config (-> "config.edn" io/file slurp edn/read-string)]
-    (assoc (get all-config env) :env env)))
+  (-> "config.edn"
+      io/file slurp
+      edn/read-string
+      (get env)
+      (assoc :env env)))
 
-(defn provision-db [{:keys [cloud db] :as _cfg}]
+(defn provision [{:keys [cloud db] :as _cfg}]
   (let [{:keys [project-id region]} cloud
         {:keys [version tier instance dbname user password]} db]
-    (println "🚀 Step 1: Creating Cloud SQL instance (PostgreSQL)...")
+    (println "🚀 step 1: creating cloud sql instance...")
     (b/shell "gcloud" "sql" "instances" "create" instance
              "--database-version" version
              "--tier" tier
              "--region" region
              "--root-password" password
              "--project" project-id)
-    (println "📡 Step 2: Creating the 'gritum' database...")
+    (println "📡 step 2: creating the 'gritum' database...")
     (b/shell "gcloud" "sql" "databases" "create" dbname
              "--instance" instance
              "--project" project-id)
-    (println "👤 Step 3: Creating the application user...")
+    (println "👤 step 3: creating the application user...")
     (b/shell "gcloud" "sql" "users" "create" user
              "--instance" instance
              "--password" password
              "--project" project-id)
-    (println "✅ Cloud SQL setup is complete!")))
+    (println "✅ cloud sql setup is complete!")))
 
 (defn build []
   (b/shell "clojure" "-T:build" "uberjar"))
 
-(defn image [{:keys [image]}]
+(defn press [{:keys [image]}]
   (let [{:keys [name tag]} image]
-    (println (str "🐳 Building Docker image: " name ":" tag))
+    (println (str "🐳 building docker image: " name ":" tag))
     (b/shell "docker" "buildx" "build"
              "--platform" "linux/amd64"
              "-t" (str name ":" tag) ".")))
@@ -63,7 +57,7 @@
         remote-tag (format "%s-docker.pkg.dev/%s/images/%s:%s"
                            region project-id image-name tag)
         db-conn-name (format "%s:%s:%s" project-id region instance)]
-    (println "🚀 Deploying to Cloud Run...")
+    (println "☁️ deploying to cloud run...")
     (b/shell "gcloud" "run" "deploy" image-name
              "--image" remote-tag
              "--region" region
@@ -78,10 +72,10 @@
 
 (defn migrate [{:keys [env db]}]
   (case env
-    :local (do (println "🏠 Running LOCAL migrations...")
+    :local (do (println "🏠 running local migrations...")
                (b/shell "clojure" "-M:migrate"))
     :prod (let [{:keys [dbname user password]} db]
-            (println "🚀 Running PROD migrations via Proxy...")
+            (println "🏠 running prod migrations via Proxy...")
             (b/shell {:extra-env {"DB_NAME" dbname
                                   "DB_USER" user
                                   "DB_PASS" password
@@ -89,22 +83,33 @@
                                   "DB_PORT" "5433"}}
                      "clojure" "-M:migrate"))))
 
-(defn ->msg [action]
-  (str "*" (name action) "*"
+(defn completion-msg [task]
+  (str "🚀 *" (name task) "*"
        " job is done. 🚀"))
 
-(let [cfg (get-config env)]
-  (case action
-    :check (println cfg)
-    :provision (provision-db cfg)
-    :migrate (migrate cfg)
-    :build (build)
-    :image (image cfg)
-    :register (register cfg)
-    :deploy (deploy cfg)
-    :all (do (migrate cfg)
-             (build)
-             (image cfg)
-             (register cfg)
-             (deploy cfg)))
-  (println (->msg action)))
+(defn -main [& args]
+  (let [[env-str task-str] args]
+    (assert env-str "❌ Environment (prod/local) is required.")
+    (assert task-str "❌ Task is required.")
+    (let [env (keyword env-str)
+          task (keyword task-str)
+          cfg (get-config env)]
+      (case task
+        :check (println cfg)
+        :provision (provision cfg)
+        :migrate (migrate cfg)
+        :build (build)
+        :press (press cfg)
+        :register (register cfg)
+        :deploy (deploy cfg)
+        :all (do (migrate cfg)
+                 (build)
+                 (press cfg)
+                 (register cfg)
+                 (deploy cfg))
+        (do (println (str "📖 Usage: bb control.clj "
+                          "[env] [build|press|register|deploy|all]"))
+            (System/exit 1)))
+      (println (completion-msg task)))))
+
+(apply -main *command-line-args*)
