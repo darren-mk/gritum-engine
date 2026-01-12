@@ -10,10 +10,12 @@
   [:map
    [:dbtype [:enum "postgresql"]]
    [:dbname :string]
-   [:user [:enum "gritum_admin"]]
-   [:password :string]
    [:host :string]
-   [:port [:enum 5432]]])
+   [:port [:enum 5432]]
+
+   [:user [:enum "gritum_admin"]]
+   [:username [:enum "gritum_admin"]]
+   [:password :string]])
 
 (def MigrationConfig
   [:map
@@ -37,13 +39,18 @@
    (or (System/getenv "PORT")
        "3000")))
 
+(defn parse-int [s default-val]
+  (try
+    (Integer/parseInt s)
+    (catch Exception _ default-val)))
+
 (defn get-db-config
-  {:malli/schema
-   [:=> [:cat] DbConfig]}
+  {:malli/schema [:=> [:cat] DbConfig]}
   []
-  {:dbtype "postgresql"
-   :dbname (or (System/getenv "DB_NAME") "gritum_db_local")
-   :user (or (System/getenv "DB_USER") "gritum_admin")
-   :password (or (System/getenv "DB_PASS") "gritum_password")
-   :host (or (System/getenv "DB_HOST") "localhost")
-   :port (or (System/getenv "DB_PORT") "5432")})
+  (let [user (or (System/getenv "DB_USER") "gritum_admin")]
+    {:dbtype "postgresql"
+     :dbname (or (System/getenv "DB_NAME") "gritum_db_local")
+     :host (or (System/getenv "DB_HOST") "localhost")
+     :port (parse-int (System/getenv "DB_PORT") 5432)
+     :user user :username user
+     :password (or (System/getenv "DB_PASS") "gritum_password")}))

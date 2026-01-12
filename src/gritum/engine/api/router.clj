@@ -109,8 +109,8 @@
                        :post {:summary "create a api key for the client"
                               :response {200 {:body [:map [:message :string [:api_key :string]]]}}
                               :handler (create-api-key-handler ds)}}]
-         ["/logout" {:post logout-handler}]
-         ["/me" {:get me-handler}]]]]
+         ["/me" {:get me-handler}]
+         ["/logout" {:post logout-handler}]]]]
       {:data {:middleware [mw/wrap-exception
                            mw/inject-headers-in-resp
                            mw/read-body
