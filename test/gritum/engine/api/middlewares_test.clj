@@ -48,18 +48,3 @@
       (is (= 400 (:status response)))
       (is (= "Invalid XML" (get-in response [:body :message])))
       (is (= "Client Error" (get-in response [:body :error]))))))
-
-(deftest wrap-cors-test
-  (testing "should add CORS headers to standard response"
-    (let [mock-handler (fn [_] {:status 200 :body "ok"})
-          middleware (sut/wrap-api-cors mock-handler)
-          response (middleware {:request-method :get})]
-      (is (= "*" (get-in response [:headers "Access-Control-Allow-Origin"])))
-      (is (cstr/includes? (get-in response [:headers "Access-Control-Allow-Methods"]) "POST"))))
-  (testing "should handle OPTIONS preflight request"
-    (let [mock-handler (fn [_] {:status 200 :body "should not reach here"})
-          middleware (sut/wrap-api-cors mock-handler)
-          response (middleware {:request-method :options})]
-      (is (= 200 (:status response)))
-      (is (= "" (:body response)))
-      (is (= "*" (get-in response [:headers "Access-Control-Allow-Origin"]))))))

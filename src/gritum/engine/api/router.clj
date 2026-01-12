@@ -90,12 +90,13 @@
                :handler (openapi/create-openapi-handler)}}]
        ["/api" {:coercion rcmal/coercion}
         ["/health" {:get handle-health}]
-        ["/services" {:middleware [auth-mw]}
+        ["/services" {:middleware [auth-mw mw/wrap-public-cors]}
          ["/v1"
           ["/ping" {:get {:responses {200 {:body [:map [:message :string]]}}
                           :handler pong-handler}}]
           ["/evaluate" {:post evaluate-handler}]]]
-        ["/dashboard" {:middleware [mw/wrap-session]}
+        ["/dashboard" {:middleware [mw/wrap-session
+                                    mw/wrap-dashboard-cors]}
          ["/signup" {:post {:summary "create client and return email with message"
                             :responses {200 {:body [:map [:message :string] [:email dom/Email]]}}
                             :handler (signup-handler ds)}}]
@@ -111,7 +112,6 @@
          ["/logout" {:post logout-handler}]
          ["/me" {:get me-handler}]]]]
       {:data {:middleware [mw/wrap-exception
-                           mw/wrap-api-cors
                            mw/inject-headers-in-resp
                            mw/read-body
                            mw/write-body
