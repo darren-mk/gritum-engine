@@ -61,25 +61,21 @@
   (resp/ok {:message "pong"}))
 
 (defn me-handler [req]
-  (if-let [id (get-in req [:session :identity])]
-    (resp/ok {:id id})
-    (resp/unauthorized)))
+  (resp/ok {:id (get-in req [:session :identity])}))
 
 (defn create-api-key-handler [ds]
   (fn [req]
-    (if-let [client-id (get-in req [:session :identity])]
-      (let [raw-key (db.api-key/create! ds client-id)
-            msg "API key created successfully. Please save it now."]
-        (resp/ok {:api_key raw-key
-                  :message msg}))
-      (resp/unauthorized))))
+    (let [client-id (get-in req [:session :identity])
+          raw-key (db.api-key/create! ds client-id)
+          msg "API key created successfully."]
+      (resp/ok {:api_key raw-key
+                :message msg}))))
 
 (defn list-api-keys-handler [ds]
   (fn [req]
-    (if-let [client-id (get-in req [:session :identity])]
-      (let [api-keys (db.api-key/list-by-client ds client-id)]
-        (resp/ok api-keys))
-      (resp/unauthorized))))
+    (let [client-id (get-in req [:session :identity])
+          api-keys (db.api-key/list-by-client ds client-id)]
+      (resp/ok api-keys))))
 
 (defn app [{:keys [ds]}]
   (let [auth-mw (mw/wrap-api-key-auth ds)]
@@ -103,14 +99,15 @@
          ["/login" {:post {:summary "log in as client"
                            :responses {200 {:body dom/Client}}
                            :handler (login-handler ds)}}]
-         ["/api-keys" {:get {:summary "returns api keys for the client"
-                             :responses {200 {:body [:sequential dom/ApiKey]}}
-                             :handler (list-api-keys-handler ds)}
-                       :post {:summary "create a api key for the client"
-                              :response {200 {:body [:map [:message :string [:api_key :string]]]}}
-                              :handler (create-api-key-handler ds)}}]
-         ["/me" {:get me-handler}]
-         ["/logout" {:post logout-handler}]]]]
+         ["/auth" {:middleware [mw/wrap-require-auth]}
+          ["/api-keys" {:get {:summary "returns api keys for the client"
+                              :responses {200 {:body [:sequential dom/ApiKey]}}
+                              :handler (list-api-keys-handler ds)}
+                        :post {:summary "create a api key for the client"
+                               :response {200 {:body [:map [:message :string [:api_key :string]]]}}
+                               :handler (create-api-key-handler ds)}}]
+          ["/me" {:get me-handler}]
+          ["/logout" {:post logout-handler}]]]]]
       {:data {:middleware [mw/wrap-exception
                            mw/inject-headers-in-resp
                            mw/read-body

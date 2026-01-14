@@ -1,12 +1,14 @@
 (ns gritum.engine.api.middlewares
   (:require
    [clojure.string :as cstr]
+   [gritum.engine.domain :as dom]
    [gritum.engine.db.api-key :as db.api-key]
    [jsonista.core :as json]
    [taoensso.timbre :as log]
    [ring.middleware.session :as ses]
    [ring.middleware.session.memory :as smem]
-   [ring.util.http-response :as resp]))
+   [ring.util.http-response :as resp]
+   [malli.core :as m]))
 
 (def json-mapper
   (json/object-mapper
@@ -99,3 +101,11 @@
 
 (defn wrap-session [handler]
   (ses/wrap-session handler session-options))
+
+(defn wrap-require-auth [handler]
+  (fn [req]
+    (let [ident (get-in req [:session :identity])]
+      (if (and ident (m/validate dom/ClientId ident))
+        (handler req)
+        {:status 401
+         :body {:error "Unauthorized. Please log in."}}))))

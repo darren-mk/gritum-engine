@@ -16,9 +16,12 @@
   [:re {:error/message "not correct email format"}
    #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"])
 
+(def ClientId
+  :uuid)
+
 (def Client
   [:map
-   [:id :uuid]
+   [:id ClientId]
    [:email Email]
    [:password_hash {:optional true} :string]
    [:full_name :string]
