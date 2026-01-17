@@ -2,19 +2,19 @@
   (:require
    [clojure.string :as cstr]
    [clojure.test :refer [deftest is testing]]
-   [gritum.engine.api.middlewares :as sut]
+   [gritum.engine.api.middleware :as sut]
    [jsonista.core :as json]))
 
 (deftest inject-headers-in-resp-test
   (testing "should add application/json Content-Type header to valid responses"
     (let [mock-handler (fn [_] {:status 200 :body "ok"})
-          middleware (sut/inject-headers-in-resp mock-handler)
+          middleware (sut/content-type-json mock-handler)
           response (middleware {})]
       (is (= "application/json; charset=utf-8"
              (get-in response [:headers "Content-Type"])))))
   (testing "should return nil if the handler returns nil"
     (let [mock-handler (fn [_] nil)
-          middleware (sut/inject-headers-in-resp mock-handler)
+          middleware (sut/content-type-json mock-handler)
           response (middleware {})]
       (is (nil? response)))))
 
@@ -22,13 +22,13 @@
   (testing "should convert Map body into JSON byte array"
     (let [data {:foo "bar"}
           mock-handler (fn [_] {:status 200 :body data})
-          middleware (sut/write-body mock-handler)
+          middleware (sut/write-body-as-bytes mock-handler)
           response (middleware {})]
       (is (bytes? (:body response)))
       (is (= data (json/read-value (:body response) json/keyword-keys-object-mapper)))))
   (testing "should return response as is if body is missing"
     (let [mock-handler (fn [_] {:status 204})
-          middleware (sut/write-body mock-handler)
+          middleware (sut/write-body-as-bytes mock-handler)
           response (middleware {})]
       (is (not (contains? response :body)))
       (is (= 204 (:status response))))))

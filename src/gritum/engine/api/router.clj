@@ -1,9 +1,10 @@
 (ns gritum.engine.api.router
   (:require
-   [gritum.engine.api.middlewares :as mw]
+   [gritum.engine.api.middleware :as mw]
    [gritum.engine.core :as core]
    [gritum.engine.db.client :as db.client]
    [gritum.engine.db.api-key :as db.api-key]
+   [gritum.engine.web.pages.docs :as pg.docs]
    [reitit.coercion.malli :as rcmal]
    [reitit.ring :as ring]
    [reitit.openapi :as openapi]
@@ -81,10 +82,15 @@
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
      (ring/router
-      [["/openapi.json"
+      [["" {:middleware [mw/content-type-html
+                         mw/wrap-hiccup]}
+        ["/docs" {:get pg.docs/handler}]]
+       ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]
-       ["/api" {:coercion rcmal/coercion}
+       ["/api" {:coercion rcmal/coercion
+                :middleware [mw/content-type-json
+                             mw/write-body-as-bytes]}
         ["/health" {:get handle-health}]
         ["/services" {:middleware [auth-mw mw/wrap-public-cors]}
          ["/v1"
@@ -109,8 +115,6 @@
           ["/me" {:get me-handler}]
           ["/logout" {:post logout-handler}]]]]]
       {:data {:middleware [mw/wrap-exception
-                           mw/inject-headers-in-resp
                            mw/read-body
-                           mw/write-body
                            midp/wrap-params
                            multp/wrap-multipart-params]}}))))
