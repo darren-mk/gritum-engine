@@ -1,20 +1,21 @@
-(ns gritum.engine.api.middlewares
+(ns gritum.engine.api.middleware
   (:require
    [clojure.string :as cstr]
    [gritum.engine.domain :as dom]
    [gritum.engine.db.api-key :as db.api-key]
+   [hiccup2.core :as h]
    [jsonista.core :as json]
+   [malli.core :as m]
    [taoensso.timbre :as log]
    [ring.middleware.session :as ses]
    [ring.middleware.session.memory :as smem]
-   [ring.util.http-response :as resp]
-   [malli.core :as m]))
+   [ring.util.http-response :as ruhr]))
 
 (def json-mapper
   (json/object-mapper
    {:decode-key-fn true}))
 
-(defn inject-headers-in-resp [handler]
+(defn content-type-json [handler]
   (let [m {"Content-Type"
            "application/json; charset=utf-8"}]
     (fn [req]
@@ -22,6 +23,21 @@
         (if resp
           (update resp :headers merge m)
           resp)))))
+
+(defn content-type-html [handler]
+  (let [m {"Content-Type"
+           "text/html; charset=utf-8"}]
+    (fn [req]
+      (let [resp (handler req)]
+        (if resp
+          (update resp :headers merge m)
+          resp)))))
+
+(defn wrap-hiccup [handler]
+  (fn [req]
+    (let [hiccup (handler req)]
+      (-> hiccup h/html
+          str ruhr/ok))))
 
 (defn read-body [handler]
   (fn [{:keys [content-type request-method] :as request}]
@@ -36,7 +52,7 @@
         (handler new-request))
       (handler request))))
 
-(defn write-body [handler]
+(defn write-body-as-bytes [handler]
   (let [f #(json/write-value-as-bytes
             % json/default-object-mapper)]
     (fn [req]
@@ -90,7 +106,7 @@
       (let [api-key (get-in request [:headers "x-api-key"])]
         (if-let [key-info (and api-key (db.api-key/verify! ds api-key))]
           (handler (assoc request :identity key-info))
-          (resp/unauthorized {:error "Invalid or missing API key"}))))))
+          (ruhr/unauthorized {:error "Invalid or missing API key"}))))))
 
 (def session-options
   {:store (smem/memory-store)
