@@ -11,8 +11,10 @@
      [:meta {:charset "UTF-8"}]
      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
      [:title title]
+     [:script {:type :module
+               :src "https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.7/bundles/datastar.js"}]
      [:script {:src "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"}]]
     [:body {:class "bg-white"}
-     (navbar/basic nil)
+     #_(navbar/basic nil)
      [:div {:class ["pt-16" "min-h-screen"]}
       content]]]))
