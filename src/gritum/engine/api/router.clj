@@ -11,12 +11,15 @@
    [gritum.engine.web.pages.pricing :as pg.pricing]
    [gritum.engine.web.pages.signup :as pg.signup]
    [gritum.engine.web.pages.lab :as pg.lab]
+   [hiccup2.core :as h]
    [reitit.coercion.malli :as rcmal]
    [reitit.ring :as ring]
    [reitit.openapi :as openapi]
    [ring.middleware.multipart-params :as multp]
    [ring.middleware.params :as midp]
    [ring.util.http-response :as resp]
+   [starfederation.datastar.clojure.api :as ds]
+   [starfederation.datastar.clojure.adapter.http-kit :as dshk]
    [taoensso.timbre :as log]
    [gritum.engine.domain :as dom]))
 
@@ -84,6 +87,15 @@
           api-keys (db.api-key/list-by-client ds client-id)]
       (resp/ok api-keys))))
 
+(defn hello-handler [request]
+  (dshk/->sse-response
+   request
+   {dshk/on-open
+    (fn [sse]
+      (ds/patch-elements! sse (-> pg.lab/stream-basic-resp-1 h/html str))
+      (Thread/sleep 2000)
+      (ds/patch-elements! sse (-> pg.lab/stream-basic-resp-2 h/html str)))}))
+
 (defn app [{:keys [ds]}]
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
@@ -100,17 +112,22 @@
        ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]
+       ["/stream" {:middleware [mw/wrap-session]}
+        ["/hello" {:get hello-handler}]]
        ["/api" {:coercion rcmal/coercion
-                :middleware [mw/content-type-json
-                             mw/write-body-as-bytes]}
+                :middleware [mw/write-body-as-bytes]}
         ["/health" {:get handle-health}]
-        ["/services" {:middleware [auth-mw mw/wrap-public-cors]}
+        ["/services" {:middleware [mw/content-type-json
+                                   auth-mw
+                                   mw/wrap-public-cors
+                                   mw/read-body]}
          ["/v1"
           ["/ping" {:get {:responses {200 {:body [:map [:message :string]]}}
                           :handler pong-handler}}]
           ["/evaluate" {:post evaluate-handler}]]]
         ["/dashboard" {:middleware [mw/wrap-session
                                     mw/wrap-dashboard-cors]}
+
          ["/signup" {:post {:summary "create client and return email with message"
                             :responses {200 {:body [:map [:message :string] [:email dom/Email]]}}
                             :handler (signup-handler ds)}}]
@@ -127,6 +144,5 @@
           ["/me" {:get me-handler}]
           ["/logout" {:post logout-handler}]]]]]
       {:data {:middleware [mw/wrap-exception
-                           mw/read-body
                            midp/wrap-params
                            multp/wrap-multipart-params]}}))))
