@@ -19,7 +19,7 @@
   (inst)
   (ir/go))
 
-(defn halt []
+(defn stop []
   (ir/halt))
 
 (defn rego []
@@ -35,7 +35,7 @@
   (inst)
   (unst)
   (go)
-  (halt)
+  (stop)
   (rego)
   (create-mig "some-name")
   (run-mig))

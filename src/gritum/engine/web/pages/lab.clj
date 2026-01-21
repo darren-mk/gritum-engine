@@ -159,6 +159,31 @@
                 :data-attr:disabled (str "$" (name k) " == ''")}
        "Reset Value"]]]))
 
+(def stream-basic
+  [:div {:class ["flex" "flex-col" "gap-6"]}
+   [:div {:class ["flex" "items-center" "gap-4"]}
+    [:button {:data-on:click "@get('/stream/hello')"
+              :class ["px-6" "py-3" "bg-slate-900" "text-white"
+                      "rounded-xl" "hover:bg-black"]}
+     "Get Greeting from Server"]
+    [:button {:data-on:click "$helloMsg = 'Waiting...'"
+              :class "text-xs text-slate-400 underline"}
+     "Reset"]]
+   [:div {:id "hal"
+          :class ["p-6" "bg-slate-50" "rounded-2xl" "border"
+                  "border-dashed" "border-slate-200" "text-center"]}
+    "Click the button to talk to the server."]])
+
+(def stream-basic-resp-1
+  [:div {:id "hal"
+         :class ["text-center" "font-bold" "text-xl" "text-slate-700"]}
+   "Abc"])
+
+(def stream-basic-resp-2
+  [:div {:id "hal"
+         :class ["text-center" "font-bold" "text-xl" "text-slate-700"]}
+   "Def"])
+
 ;; --- Main Page Assembly ---
 
 (def header
@@ -192,7 +217,10 @@
             data-attr)
    (section "Event Listeners (data-on)"
             "클릭, 키보드 입력 등 브라우저 이벤트를 가로채 시그널을 수정하거나 자바스크립트를 실행합니다."
-            data-on)])
+            data-on)
+   (section "Simple Server Request (@get)"
+            "버튼을 누르면 서버가 SSE 포맷으로 HTML 조각을 보내고, 브라우저는 해당 ID의 요소를 즉시 교체합니다."
+            stream-basic)])
 
 (defn handler [_]
   (l/base "Datastar Lab | TRID Check" content))
