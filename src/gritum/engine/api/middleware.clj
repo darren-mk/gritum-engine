@@ -1,7 +1,7 @@
 (ns gritum.engine.api.middleware
   (:require
    [clojure.string :as cstr]
-   [gritum.engine.domain :as dom]
+   [gritum.engine.domain.model :as dom]
    [gritum.engine.db.api-key :as db.api-key]
    [hiccup2.core :as h]
    [jsonista.core :as json]

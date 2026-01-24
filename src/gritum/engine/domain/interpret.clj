@@ -1,4 +1,4 @@
-(ns gritum.engine.interpret)
+(ns gritum.engine.domain.interpret)
 
 (def loan-path
   [:MESSAGE :DOCUMENT_SETS
@@ -19,7 +19,7 @@
     ("ServicesBorrowerDidNotShopFor") (if (zero-tolerance-fee-types fee-type) 0.0 0.1)
     ("TaxesAndOtherGovernmentFees") (if (= fee-type "RecordingFee") 0.1 0.0)
     ("Prepaids" "InitialEscrowPaymentAtClosing"
-     "ServicesBorrowerDidShopFor" "OtherCosts") nil))
+                "ServicesBorrowerDidShopFor" "OtherCosts") nil))
 
 (def apr-mandatory-fees
   #{"LoanDiscountPoints"

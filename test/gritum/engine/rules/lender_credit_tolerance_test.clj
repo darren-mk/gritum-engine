@@ -2,7 +2,7 @@
   (:require
    [clojure.test :refer [deftest is testing]]
    [gritum.engine.rules.lender-credit-tolerance :as sut]
-   [gritum.engine.domain :as dom]
+   [gritum.engine.domain.model :as dom]
    [gritum.engine.test-helper :as h]))
 
 (defn- mock-lender-credit-summary

@@ -1,5 +1,5 @@
 (ns gritum.engine.core
-  (:require [gritum.engine.evaluate :as eval]
+  (:require [gritum.engine.domain.evaluate :as eval]
             [clojure.data.xml :as xml]))
 
 (defn evaluate-xml

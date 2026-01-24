@@ -1,4 +1,4 @@
-(ns gritum.engine.extract)
+(ns gritum.engine.domain.extract)
 
 (defn jump-map [xml k]
   (when (= k (:tag xml)) (:content xml)))

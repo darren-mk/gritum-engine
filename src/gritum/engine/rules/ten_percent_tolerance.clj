@@ -2,7 +2,7 @@
   "Define items subject to the 10% aggregate tolerance rule.
   Includes all of Section C and specific Recording Fees from Section E. "
   (:require
-   [gritum.engine.domain :as dom]))
+   [gritum.engine.domain.model :as dom]))
 
 (def ^:private ten-percent-sections
   #{:services-shop})
@@ -20,7 +20,7 @@
            (contains? recording-fee-categories category))))
 
 (defn- sum-buyer-payments
- "Sums only the amounts where the payer is :buyer."
+  "Sums only the amounts where the payer is :buyer."
   {:malli/schema [:=> [:cat dom/Fee] dom/Money]}
   [fee]
   (->> (:payments fee)

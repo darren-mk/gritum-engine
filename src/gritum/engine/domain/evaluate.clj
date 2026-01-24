@@ -1,7 +1,7 @@
-(ns gritum.engine.evaluate
+(ns gritum.engine.domain.evaluate
   "Orchestrates the evaluation of fee tolerance rules between LE and CD."
   (:require
-   [gritum.engine.domain :as dom]
+   [gritum.engine.domain.model :as dom]
    [gritum.engine.rules.zero-percent-tolerance :as zero]
    [gritum.engine.rules.ten-percent-tolerance :as ten]))
 
