@@ -1,7 +1,7 @@
 (ns gritum.engine.extract-test
   (:require
    [clojure.test :as t]
-   [gritum.engine.extract :as sut]
+   [gritum.engine.domain.extract :as sut]
    [gritum.engine.test-helper :as h]))
 
 (t/deftest jump-map-test

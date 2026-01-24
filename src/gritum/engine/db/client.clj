@@ -1,7 +1,7 @@
 (ns gritum.engine.db.client
   (:require
    [buddy.hashers :as hs]
-   [gritum.engine.domain :as dom]
+   [gritum.engine.domain.model :as dom]
    [next.jdbc.result-set :as rs]
    [next.jdbc.sql :as sql]))
 

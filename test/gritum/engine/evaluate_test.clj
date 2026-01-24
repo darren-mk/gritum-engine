@@ -1,8 +1,8 @@
 (ns gritum.engine.evaluate-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [gritum.engine.domain :as domain]
-   [gritum.engine.evaluate :as sut]
+   [gritum.engine.domain.model :as domain]
+   [gritum.engine.domain.evaluate :as sut]
    [gritum.engine.test-helper :as h]))
 
 (defn- mock-fee

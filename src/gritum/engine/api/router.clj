@@ -12,7 +12,7 @@
    [ring.middleware.params :as midp]
    [ring.util.http-response :as resp]
    [taoensso.timbre :as log]
-   [gritum.engine.domain :as dom]))
+   [gritum.engine.domain.model :as dom]))
 
 (defn- handle-health [_]
   {:status 200
