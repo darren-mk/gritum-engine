@@ -1,6 +1,5 @@
 (ns gritum.engine.api.middlewares-test
   (:require
-   [clojure.string :as cstr]
    [clojure.test :refer [deftest is testing]]
    [gritum.engine.api.middleware :as sut]
    [jsonista.core :as json]))

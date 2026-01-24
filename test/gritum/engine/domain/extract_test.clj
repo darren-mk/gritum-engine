@@ -1,8 +1,8 @@
-(ns gritum.engine.extract-test
+(ns gritum.engine.domain.extract-test
   (:require
    [clojure.test :as t]
    [gritum.engine.domain.extract :as sut]
-   [gritum.engine.test-helper :as h]))
+   [gritum.engine.helpers.xml :as h]))
 
 (t/deftest jump-map-test
   (let [sample {:tag :A :content ["val"]}]

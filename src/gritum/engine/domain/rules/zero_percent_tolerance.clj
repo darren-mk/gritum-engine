@@ -1,4 +1,4 @@
-(ns gritum.engine.rules.zero-percent-tolerance
+(ns gritum.engine.domain.rules.zero-percent-tolerance
   "Defines items subject to the 0% tolerance rule.
    These items cannot increase from LE to CD at all."
   (:require

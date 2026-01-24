@@ -1,9 +1,9 @@
-(ns gritum.engine.rules.lender-credit-tolerance-test
+(ns gritum.engine.domain.rules.lender-credit-tolerance-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [gritum.engine.rules.lender-credit-tolerance :as sut]
+   [gritum.engine.domain.rules.lender-credit-tolerance :as sut]
    [gritum.engine.domain.model :as dom]
-   [gritum.engine.test-helper :as h]))
+   [gritum.engine.helpers.xml :as h]))
 
 (defn- mock-lender-credit-summary
   "Creates a summary node matching the path in Refinance Fixed UCD v2.0.xml."
