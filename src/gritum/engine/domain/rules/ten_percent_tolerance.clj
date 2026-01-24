@@ -1,4 +1,4 @@
-(ns gritum.engine.rules.ten-percent-tolerance
+(ns gritum.engine.domain.rules.ten-percent-tolerance
   "Define items subject to the 10% aggregate tolerance rule.
   Includes all of Section C and specific Recording Fees from Section E. "
   (:require

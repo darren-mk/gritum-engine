@@ -1,14 +1,8 @@
-(ns gritum.engine.test-helper
+(ns gritum.engine.helpers.xml
   (:require
-   [clojure.edn :as edn]
    [clojure.data.xml :as xml]
    [clojure.java.io :as io]
    [clojure.test :as t]))
-
-(defn load-edn [filename]
-  (if-let [resource-url (io/resource filename)]
-    (-> resource-url slurp edn/read-string)
-    (throw (Exception. (str "Resource not found: " filename)))))
 
 (defn load-xml [filename]
   (if-let [resource-url (io/resource filename)]
