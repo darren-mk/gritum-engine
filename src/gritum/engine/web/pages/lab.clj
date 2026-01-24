@@ -162,7 +162,7 @@
 (def stream-basic
   [:div {:class ["flex" "flex-col" "gap-6"]}
    [:div {:class ["flex" "items-center" "gap-4"]}
-    [:button {:data-on:click "@get('/stream/hello')"
+    [:button {:data-on:click "@get('/hypermedia/hello')"
               :class ["px-6" "py-3" "bg-slate-900" "text-white"
                       "rounded-xl" "hover:bg-black"]}
      "Get Greeting from Server"]
