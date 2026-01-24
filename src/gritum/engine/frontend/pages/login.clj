@@ -1,6 +1,6 @@
-(ns gritum.engine.web.pages.login
+(ns gritum.engine.frontend.pages.login
   (:require
-   [gritum.engine.web.layout :as l]))
+   [gritum.engine.frontend.layout :as l]))
 
 (def login-header
   [:div {:class ["mb-8"]}

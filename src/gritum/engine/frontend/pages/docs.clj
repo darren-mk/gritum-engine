@@ -1,6 +1,6 @@
-(ns gritum.engine.web.pages.docs
+(ns gritum.engine.frontend.pages.docs
   (:require
-   [gritum.engine.web.layout :as layout]))
+   [gritum.engine.frontend.layout :as layout]))
 
 (def intro
   [:section#introduction {:class ["mb-20"]}

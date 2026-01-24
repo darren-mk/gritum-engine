@@ -1,5 +1,5 @@
-(ns gritum.engine.web.pages.home
-  (:require [gritum.engine.web.layout :as layout]))
+(ns gritum.engine.frontend.pages.home
+  (:require [gritum.engine.frontend.layout :as layout]))
 
 (def hero-section
   [:header {:class ["max-w-5xl" "mx-auto" "px-6" "pt-24" "pb-32" "text-center"]}

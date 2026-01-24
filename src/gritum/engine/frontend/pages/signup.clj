@@ -1,5 +1,5 @@
-(ns gritum.engine.web.pages.signup
-  (:require [gritum.engine.web.layout :as layout]))
+(ns gritum.engine.frontend.pages.signup
+  (:require [gritum.engine.frontend.layout :as layout]))
 
 ;; --- UI Partials ---
 

@@ -1,6 +1,6 @@
-(ns gritum.engine.web.pages.dashboard
+(ns gritum.engine.frontend.pages.dashboard
   (:require
-   [gritum.engine.web.layout :as layout]))
+   [gritum.engine.frontend.layout :as layout]))
 
 (defn console-header [user]
   [:section {:class ["mb-12" "flex" "justify-between" "items-end"]}
