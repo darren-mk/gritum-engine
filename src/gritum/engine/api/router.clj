@@ -82,25 +82,16 @@
           api-keys (db.api-key/list-by-client ds client-id)]
       (resp/ok api-keys))))
 
-(defn hello-handler [request]
-  (dshk/->sse-response
-   request
-   {dshk/on-open
-    (fn [sse]
-      (ds/patch-elements! sse (-> pg.lab/stream-basic-resp-1 h/html str))
-      (Thread/sleep 2000)
-      (ds/patch-elements! sse (-> pg.lab/stream-basic-resp-2 h/html str)))}))
-
 (defn app [{:keys [ds]}]
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
      (ring/router
-      [route.web/pages
+      [(route.web/pages [mw/content-type-html mw/wrap-hiccup])
+       (route.web/hypermedia [mw/wrap-session])
        ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]
-       ["/stream" {:middleware [mw/wrap-session]}
-        ["/hello" {:get hello-handler}]]
+
        ["/api" {:coercion rcmal/coercion
                 :middleware [mw/write-body-as-bytes]}
         ["/health" {:get handle-health}]
