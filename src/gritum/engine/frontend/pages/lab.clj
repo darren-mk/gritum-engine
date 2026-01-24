@@ -1,6 +1,6 @@
-(ns gritum.engine.web.pages.lab
+(ns gritum.engine.frontend.pages.lab
   (:require
-   [gritum.engine.web.layout :as l]))
+   [gritum.engine.frontend.layout :as l]))
 
 ;; --- UI Helpers ---
 

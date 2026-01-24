@@ -4,17 +4,13 @@
    [gritum.engine.core :as core]
    [gritum.engine.db.client :as db.client]
    [gritum.engine.db.api-key :as db.api-key]
-   [gritum.engine.web.routes :as route.web]
-   [gritum.engine.web.pages.lab :as pg.lab]
-   [hiccup2.core :as h]
+   [gritum.engine.frontend.routes :as route.web]
    [reitit.coercion.malli :as rcmal]
    [reitit.ring :as ring]
    [reitit.openapi :as openapi]
    [ring.middleware.multipart-params :as multp]
    [ring.middleware.params :as midp]
    [ring.util.http-response :as resp]
-   [starfederation.datastar.clojure.api :as ds]
-   [starfederation.datastar.clojure.adapter.http-kit :as dshk]
    [taoensso.timbre :as log]
    [gritum.engine.domain :as dom]))
 

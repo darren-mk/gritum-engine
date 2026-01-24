@@ -1,5 +1,5 @@
-(ns gritum.engine.web.pages.pricing
-  (:require [gritum.engine.web.layout :as layout]))
+(ns gritum.engine.frontend.pages.pricing
+  (:require [gritum.engine.frontend.layout :as layout]))
 
 (def plans
   [{:name "Starter"

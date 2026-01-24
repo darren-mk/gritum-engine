@@ -1,6 +1,6 @@
-(ns gritum.engine.web.handlers
+(ns gritum.engine.frontend.handlers
   (:require
-   [gritum.engine.web.pages.lab :as pg.lab]
+   [gritum.engine.frontend.pages.lab :as pg.lab]
    [hiccup2.core :as h]
    [starfederation.datastar.clojure.api :as ds]
    [starfederation.datastar.clojure.adapter.http-kit :as dshk]))

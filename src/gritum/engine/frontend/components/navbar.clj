@@ -1,4 +1,4 @@
-(ns gritum.engine.web.components.navbar)
+(ns gritum.engine.frontend.components.navbar)
 
 (def logo
   [:a {:href "/"

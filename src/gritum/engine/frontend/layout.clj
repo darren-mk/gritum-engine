@@ -1,7 +1,6 @@
-(ns gritum.engine.web.layout
+(ns gritum.engine.frontend.layout
   (:require
-   [hiccup2.core :as h]
-   [gritum.engine.web.components.navbar :as navbar]))
+   [hiccup2.core :as h]))
 
 (defn base [title content]
   (h/html
