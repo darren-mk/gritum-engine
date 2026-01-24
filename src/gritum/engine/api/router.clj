@@ -4,12 +4,7 @@
    [gritum.engine.core :as core]
    [gritum.engine.db.client :as db.client]
    [gritum.engine.db.api-key :as db.api-key]
-   [gritum.engine.web.pages.dashboard :as pg.dashboard]
-   [gritum.engine.web.pages.docs :as pg.docs]
-   [gritum.engine.web.pages.home :as pg.home]
-   [gritum.engine.web.pages.login :as pg.login]
-   [gritum.engine.web.pages.pricing :as pg.pricing]
-   [gritum.engine.web.pages.signup :as pg.signup]
+   [gritum.engine.web.routes :as route.web]
    [gritum.engine.web.pages.lab :as pg.lab]
    [hiccup2.core :as h]
    [reitit.coercion.malli :as rcmal]
@@ -100,15 +95,7 @@
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
      (ring/router
-      [["" {:middleware [mw/content-type-html
-                         mw/wrap-hiccup]}
-        ["/" {:get pg.home/handler}]
-        ["/docs" {:get pg.docs/handler}]
-        ["/login" {:get pg.login/handler}]
-        ["/pricing" {:get pg.pricing/handler}]
-        ["/signup" {:get pg.signup/handler}]
-        ["/dashboard" {:get pg.dashboard/handler}]
-        ["/lab" {:get pg.lab/handler}]]
+      [route.web/pages
        ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]
