@@ -1,4 +1,9 @@
-(ns gritum.engine.frontend.components.navbar)
+(ns gritum.engine.frontend.components.navbar
+  (:require
+   [gritum.engine.frontend.signal :as sg]))
+
+(def burger-open-k
+  :is-navbar-burger-open)
 
 (def logo
   [:a {:href "/"
@@ -16,16 +21,16 @@
    label])
 
 (def burger-icon
-  [:svg {:class ["w-6" "h-6"]
-         :data-show "!$$burgerOpen"
+  [:svg {:data-show (sg/cite-not burger-open-k)
+         :class ["w-6" "h-6"]
          :fill "none" :stroke "currentColor" :viewBox "0 0 24 24"}
    [:path {:stroke-linecap "round" :stroke-linejoin "round"
            :stroke-width "2" :d "M4 6h16M4 12h16m-7 6h7"}]])
 
 (def close-icon
-  ;; burgerOpen이 true일 때만 보임
-  [:svg {:class ["w-6" "h-6"]
-         :data-show "$$burgerOpen"
+  "Only shown when burger open is true"
+  [:svg {:data-show (sg/cite burger-open-k)
+         :class ["w-6" "h-6"]
          :fill "none" :stroke "currentColor" :viewBox "0 0 24 24"}
    [:path {:stroke-linecap "round" :stroke-linejoin "round"
            :stroke-width "2" :d "M6 18L18 6M6 6l12 12"}]])
@@ -33,7 +38,6 @@
 (defn desktop-auth [user]
   [:div {:class ["hidden" "md:flex" "items-center" "gap-4"]}
    (if user
-     ;; list를 사용하여 여러 요소를 반환합니다.
      (list
       [:a {:href "/dashboard"
            :class ["text-sm" "font-semibold" "text-gray-700" "hover:text-gray-900"]}
@@ -52,7 +56,7 @@
        "Get Started"]))])
 
 (defn mobile-menu [user]
-  [:div {:data-show "$$burgerOpen"
+  [:div {:data-show (sg/cite burger-open-k)
          :class ["md:hidden" "bg-white" "border-t" "border-gray-50"
                  "px-6" "py-8" "space-y-6" "shadow-xl"]}
    [:div {:class ["flex" "flex-col" "gap-6"]}
@@ -82,19 +86,16 @@
 
 (defn basic [user]
   [:nav {:class ["sticky" "top-0" "z-50" "w-full" "bg-white/80"
-                 "backdrop-blur-md" "border-b" "border-gray-50"]
-         :data-signals "{burgerOpen: false}"}
+                 "backdrop-blur-md" "border-b" "border-gray-50"]}
    [:div {:class ["max-w-7xl" "mx-auto" "px-6" "h-16"
                   "flex" "items-center" "justify-between"]}
     logo
     [:div {:class ["hidden" "md:flex" "items-center" "gap-8"]}
      (nav-link "/pricing" "Pricing")
      (nav-link "/docs" "Docs")]
-    ;; Right
     [:div {:class ["flex" "items-center" "gap-4"]}
      (desktop-auth user)
-     ;; Mobile Burger Button
-     [:button {:data-on-click "$$burgerOpen = !$$burgerOpen"
+     [:button {:data-on:click (sg/toggle burger-open-k)
                :class ["md:hidden" "p-2" "text-gray-600"
                        "hover:text-gray-900" "focus:outline-none"]}
       burger-icon close-icon]]]
