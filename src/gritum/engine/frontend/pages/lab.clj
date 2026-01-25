@@ -1,6 +1,7 @@
 (ns gritum.engine.frontend.pages.lab
   (:require
-   [gritum.engine.frontend.layout :as l]))
+   [gritum.engine.frontend.layout :as l]
+   [gritum.engine.frontend.signal :as sg]))
 
 ;; --- UI Helpers ---
 
@@ -28,7 +29,7 @@
       [:label {:class ["block" "text-xs" "font-bold" "text-slate-400"
                        "uppercase" "tracking-widest" "mb-3"]}
        "Signal Input"]
-      [:input {:data-bind (name k)
+      [:input {:data-bind (sg/bind k)
                :placeholder "Type to see magic..."
                :class ["w-full" "max-w-md" "px-5" "py-4" "rounded-2xl"
                        "border-0" "ring-1" "ring-slate-200"
@@ -42,7 +43,7 @@
        "Reactive Output"]
       [:h2 {:class ["text-4xl" "font-black" "text-blue-600"
                     "tracking-tighter" "break-all"]
-            :data-text (str "$" (name k))}
+            :data-text (sg/cite k)}
        "System Ready..."]]]))
 
 (def data-show
@@ -52,7 +53,7 @@
       [:label {:class ["block" "text-xs" "font-bold" "text-slate-400"
                        "uppercase" "tracking-widest" "mb-3"]}
        "Requirement: Type something to save"]
-      [:input {:data-bind (name k)
+      [:input {:data-bind (sg/bind k)
                :placeholder "Enter your name..."
                :class ["w-full" "max-w-md" "px-5" "py-4" "rounded-2xl"
                        "border-0" "ring-1" "ring-slate-200" "focus:ring-2"
@@ -60,14 +61,14 @@
                        "transition-all" "font-semibold"]}]]
      [:div {:class ["flex" "items-center" "gap-4"]}
       (comment "only shown when $foo-bar has value")
-      [:button {:data-show (str "$" (name k))
+      [:button {:data-show (sg/cite k)
                 :style {:display "none"}
                 :class ["px-8" "py-3" "bg-green-600" "text-white"
                         "font-bold" "rounded-xl" "hover:bg-green-700"
                         "shadow-lg" "shadow-green-200" "transition-all"]}
        "Save Changes"]
       (comment "only shown when $foo-bar has no value")
-      [:p {:data-show (str "!" "$" (name k))
+      [:p {:data-show (sg/cite-not k)
            :class ["text-sm" "text-slate-400" "italic"]}
        "The save button is hidden until you type."]]]))
 
@@ -77,7 +78,7 @@
      [:div
       [:p {:class ["text-xs" "text-slate-400" "mb-2"]}
        "Type 'blue' to trigger styles"]
-      [:input {:data-bind (name k)
+      [:input {:data-bind (sg/bind k)
                :placeholder "Try typing 'blue'..."
                :class ["w-full" "max-w-md" "px-5" "py-3" "rounded-xl"
                        "border" "border-slate-200" "outline-none"]}]]
@@ -86,19 +87,16 @@
        "1. Single Class Toggle"]
       [:button {:class ["px-6" "py-2" "border-2" "rounded-xl"
                         "transition-all" "duration-500"]
-                ;; $fooBar가 'blue'일 때만 text-blue-600 및 border-blue-600 클래스 추가
                 "data-class:text-blue-600"
-                (str "$" (name k) " == 'blue'")
+                (sg/equal? (sg/cite k) (sg/->val "blue"))
                 "data-class:border-blue-600"
-                (str "$" (name k) " == 'blue'")}
+                (sg/equal? (sg/cite k) (sg/->val "blue"))}
        "Color Me Blue"]]
      [:div {:class ["space-y-4" "mt-8"]}
       [:h3 {:class ["text-sm" "font-bold" "text-slate-500"]}
        "2. Multi-Class Object"]
       [:div {:class ["p-6" "rounded-2xl" "bg-white" "border"
                      "transition-all" "duration-700"]
-             ;; 객체 구문: {클래스명: 조건}
-             ;; 하이픈이 있는 클래스는 반드시 따옴표로 감싸야 합니다.
              "data-class" (str "{'bg-blue-600': $" (name k) " == 'blue', "
                                "'text-white': $" (name k) " == 'blue', "
                                "'scale-110': $" (name k) " == 'blue'}")}
@@ -111,7 +109,7 @@
       [:label {:class ["block" "text-xs" "font-bold" "text-slate-400"
                        "uppercase" "tracking-widest" "mb-3"]}
        "Input (Signal: $egg)"]
-      [:input {:data-bind (name k)
+      [:input {:data-bind (sg/bind k)
                :placeholder "Type something to enable the button..."
                :class ["w-full" "max-w-md" "px-5" "py-4" "rounded-2xl" "border-0"
                        "ring-1" "ring-slate-200" "focus:ring-2" "focus:ring-blue-600"
@@ -126,13 +124,14 @@
        "Save Changes"]
       [:p {:class ["text-[10px]" "text-slate-400" "uppercase" "font-bold"]}
        "Status: "
-       [:span {:data-show (str "$" (name k) " == ''")
+       [:span {:data-show (sg/ref-empty? k)
                :class "text-red-400"} "Locked"]
-       [:span {:data-show (str "$" (name k) " != ''")
+       [:span {:data-show (sg/ref-not-empty? k)
                :class "text-green-500"} "Ready to Save"]]]]))
 
 (def data-on
-  (let [k :fluffy-souffle]
+  (let [k :fluffy-souffle
+        signal "$fluffy-souffle"]
     [:div {:class ["space-y-2"]}
      [:div {:class ["space-y-4"]}
       [:label {:class ["block" "text-xs" "font-bold"
@@ -140,24 +139,27 @@
                        "tracking-widest" "mb-3"]}
        "Interactive Input"]
       [:div {:class ["relative" "max-w-md"]}
-       [:input {:data-bind (name k)
+       [:input {:data-bind (sg/bind k)
                 :placeholder "Type something and click reset..."
                 :class ["w-full" "px-5" "py-4" "rounded-2xl" "border-0"
                         "ring-1" "ring-slate-200" "focus:ring-2"
                         "focus:ring-blue-600" "bg-white" "outline-none"
                         "transition-all" "font-semibold"]}]
-       [:div {:data-show (str "$" (name k))
+       [:div {:data-show (sg/cite k)
               :class ["absolute" "right-4" "top-1/2" "-translate-y-1/2"]}
         [:span {:class ["flex" "h-2" "w-2" "rounded-full"
                         "bg-green-500" "animate-pulse"]}]]]]
      [:div {:class ["flex" "items-center" "gap-3" "mt-6"]}
-      [:button {:data-on:click (str "$" (name k) " = ''")
+      [:button {:data-on:click (sg/erase k)
                 :class ["px-6" "py-3" "bg-slate-900" "text-white" "text-sm"
                         "font-bold" "rounded-xl" "hover:bg-black"
                         "active:scale-95" "transition-all"
                         "disabled:opacity-50" "disabled:cursor-not-allowed"]
-                :data-attr:disabled (str "$" (name k) " == ''")}
+                :data-attr:disabled (sg/ref-empty? k)}
        "Reset Value"]]]))
+
+(def tag-id
+  "dancing-on-mars")
 
 (def stream-basic
   [:div {:class ["flex" "flex-col" "gap-6"]}
@@ -169,18 +171,18 @@
     [:button {:data-on:click "$helloMsg = 'Waiting...'"
               :class "text-xs text-slate-400 underline"}
      "Reset"]]
-   [:div {:id "hal"
+   [:div {:id tag-id
           :class ["p-6" "bg-slate-50" "rounded-2xl" "border"
                   "border-dashed" "border-slate-200" "text-center"]}
     "Click the button to talk to the server."]])
 
 (def stream-basic-resp-1
-  [:div {:id "hal"
+  [:div {:id tag-id
          :class ["text-center" "font-bold" "text-xl" "text-slate-700"]}
    "Abc"])
 
 (def stream-basic-resp-2
-  [:div {:id "hal"
+  [:div {:id tag-id
          :class ["text-center" "font-bold" "text-xl" "text-slate-700"]}
    "Def"])
 
