@@ -35,14 +35,14 @@
    [:path {:stroke-linecap "round" :stroke-linejoin "round"
            :stroke-width "2" :d "M6 18L18 6M6 6l12 12"}]])
 
-(defn desktop-auth [user]
+(defn desktop-auth [client-id]
   [:div {:class ["hidden" "md:flex" "items-center" "gap-4"]}
-   (if user
+   (if client-id
      (list
       [:a {:href "/dashboard"
            :class ["text-sm" "font-semibold" "text-gray-700" "hover:text-gray-900"]}
        "Console"]
-      [:button {:data-on-click "@post('/api/dashboard/auth/logout')"
+      [:button {:data-on:click (sg/post "/hypermedia/logout")
                 :class ["px-4" "py-2" "border" "border-gray-200" "text-sm" "font-bold"
                         "rounded-lg" "hover:bg-gray-50" "transition-all"]}
        "Log out"])
@@ -55,7 +55,7 @@
                    "rounded-lg" "hover:bg-gray-800" "transition-all"]}
        "Get Started"]))])
 
-(defn mobile-menu [user]
+(defn mobile-menu [client-id]
   [:div {:data-show (sg/cite burger-open-k)
          :class ["md:hidden" "bg-white" "border-t" "border-gray-50"
                  "px-6" "py-8" "space-y-6" "shadow-xl"]}
@@ -64,13 +64,13 @@
     [:a {:href "/docs" :class ["text-lg" "font-bold" "text-gray-900"]} "Docs"]]
    [:hr {:class ["border-gray-100"]}]
    [:div {:class ["flex" "flex-col" "gap-4"]}
-    (if user
+    (if client-id
       (list
        [:a {:href "/dashboard"
             :class ["text-center" "py-3" "text-sm" "font-bold" "text-gray-700"
                     "border" "border-gray-200" "rounded-xl"]}
         "Console"]
-       [:button {:data-on-click "@post('/api/dashboard/auth/logout')"
+       [:button {:data-on:click (sg/post "/hypermedia/logout")
                  :class ["text-center" "py-3" "text-sm" "font-bold"
                          "text-white" "bg-red-500" "rounded-xl"]}
         "Log out"])
@@ -84,7 +84,7 @@
                     "bg-gray-900" "rounded-xl"]}
         "Get Started"]))]])
 
-(defn basic [user]
+(defn basic [client-id]
   [:nav {:class ["sticky" "top-0" "z-50" "w-full" "bg-white/80"
                  "backdrop-blur-md" "border-b" "border-gray-50"]}
    [:div {:class ["max-w-7xl" "mx-auto" "px-6" "h-16"
@@ -94,9 +94,9 @@
      (nav-link "/pricing" "Pricing")
      (nav-link "/docs" "Docs")]
     [:div {:class ["flex" "items-center" "gap-4"]}
-     (desktop-auth user)
+     (desktop-auth client-id)
      [:button {:data-on:click (sg/toggle burger-open-k)
                :class ["md:hidden" "p-2" "text-gray-600"
                        "hover:text-gray-900" "focus:outline-none"]}
       burger-icon close-icon]]]
-   (mobile-menu user)])
+   (mobile-menu client-id)])

@@ -95,7 +95,7 @@
    developer-section
    home-footer])
 
-(defn handler [_]
+(defn handler [req]
   (layout/base
    "TRID Precheck | Early-Warning Compliance API"
-   content))
+   content (get-in req [:session :identity])))
