@@ -88,5 +88,6 @@
      (map pricing-card plans)]
     trust-footer]])
 
-(defn handler [_]
-  (layout/base "Pricing | TRID Check" content))
+(defn handler [req]
+  (layout/base "Pricing | TRID Check"
+               content (get-in req [:session :identity])))

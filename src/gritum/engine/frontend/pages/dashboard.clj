@@ -1,6 +1,7 @@
 (ns gritum.engine.frontend.pages.dashboard
   (:require
-   [gritum.engine.frontend.layout :as layout]))
+   [gritum.engine.frontend.layout :as layout]
+   [jsonista.core :as j]))
 
 (defn console-header [user]
   [:section {:class ["mb-12" "flex" "justify-between" "items-end"]}
@@ -62,15 +63,10 @@
       (console-header user)
       (api-keys-table api-keys)))])
 
-(defn handler [_]
-  (let [mock-user {:full_name "Test User" :email "test@bitem.com"}
+(defn handler [req]
+  (let [client-id (get-in req [:session :identity])
+        mock-user {:full_name "Test User" :email "test@bitem.com"}
         mock-keys [{:name "Default Key" :key_id "trid_live_123" :created_at "2026-01-17"}]]
     (layout/base "Console | TRID Precheck"
-                 (dashboard-content mock-user mock-keys))))
-
-#_(defn handler [{:keys [session]}]
-  ;; 세션에서 유저 정보와 API 키 정보를 가져온다고 가정
-    (let [user (:user session)
-          api-keys (:api-keys session)]
-      (layout/base "Console | TRID Precheck"
-                   (dashboard-content user api-keys))))
+                 (dashboard-content mock-user mock-keys)
+                 client-id)))

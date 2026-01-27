@@ -19,6 +19,8 @@
    ["/dashboard" {:get pg.dashboard/handler}]
    ["/lab" {:get pg.lab/handler}]])
 
-(defn hypermedia [mws]
+(defn hypermedia [mws ds]
   ["/hypermedia" {:middleware mws}
-   ["/hello" {:get handlers/hello}]])
+   ["/hello" {:get handlers/hello}]
+   ["/login" {:post (handlers/login ds)}]
+   ["/logout" {:post handlers/logout}]])

@@ -1,6 +1,6 @@
 (ns gritum.engine.frontend.pages.lab
   (:require
-   [gritum.engine.frontend.layout :as l]
+   [gritum.engine.frontend.layout :as layout]
    [gritum.engine.frontend.signal :as sg]))
 
 ;; --- UI Helpers ---
@@ -88,9 +88,9 @@
       [:button {:class ["px-6" "py-2" "border-2" "rounded-xl"
                         "transition-all" "duration-500"]
                 "data-class:text-blue-600"
-                (sg/equal? (sg/cite k) (sg/->val "blue"))
+                (sg/equal? (sg/cite k) (sg/->text "blue"))
                 "data-class:border-blue-600"
-                (sg/equal? (sg/cite k) (sg/->val "blue"))}
+                (sg/equal? (sg/cite k) (sg/->text "blue"))}
        "Color Me Blue"]]
      [:div {:class ["space-y-4" "mt-8"]}
       [:h3 {:class ["text-sm" "font-bold" "text-slate-500"]}
@@ -224,5 +224,7 @@
             "버튼을 누르면 서버가 SSE 포맷으로 HTML 조각을 보내고, 브라우저는 해당 ID의 요소를 즉시 교체합니다."
             stream-basic)])
 
-(defn handler [_]
-  (l/base "Datastar Lab | TRID Check" content))
+(defn handler [req]
+  (layout/base
+   "Datastar Lab | TRID Check"
+   content (get-in req [:session :identity])))

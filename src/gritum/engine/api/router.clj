@@ -82,8 +82,11 @@
   (let [auth-mw (mw/wrap-api-key-auth ds)]
     (ring/ring-handler
      (ring/router
-      [(route.web/pages [mw/content-type-html mw/wrap-hiccup])
-       (route.web/hypermedia [mw/wrap-session])
+      [(route.web/pages [mw/wrap-session
+                         mw/content-type-html
+                         mw/wrap-hiccup])
+       (route.web/hypermedia [mw/wrap-session
+                              mw/read-body] ds)
        ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]

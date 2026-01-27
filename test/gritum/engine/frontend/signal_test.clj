@@ -13,7 +13,7 @@
     (is (= "!$user-id" (sg/cite-not :user-id))
         "cite-not should prefix the signal with !$"))
   (testing "Logic and comparison helpers"
-    (is (= "$role=='admin'" (sg/equal? (sg/cite :role) (sg/->val "admin")))
+    (is (= "$role=='admin'" (sg/equal? (sg/cite :role) (sg/->text "admin")))
         "equal? should join two strings with == operator")
     (is (= "$is-open=!$is-open" (sg/toggle :is-open))
         "toggle should generate a self-inverting assignment expression"))
@@ -25,7 +25,7 @@
     (is (= "!$input-field==''" (sg/ref-not-empty? :input-field))
         "ref-not-empty? should use the negated signal reference for empty check"))
   (testing "String literal wrapping"
-    (is (= "'active'" (sg/->val "active"))
+    (is (= "'active'" (sg/->text "active"))
         "string should wrap a keyword name in single quotes for JS expressions")))
 
 (deftest malli-schema-validation

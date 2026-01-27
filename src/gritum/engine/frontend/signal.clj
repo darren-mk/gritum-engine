@@ -18,6 +18,12 @@
   [k]
   (str "!$" (name k)))
 
+(defn assign
+  {:malli/schema
+   [:=> [:cat :keyword :any] :string]}
+  [k v]
+  (str (cite k) "=" v))
+
 (defn equal?
   {:malli/schema
    [:=> [:cat :string :string] :string]}
@@ -48,8 +54,14 @@
   [k]
   (str (cite-not k) "==''"))
 
-(defn ->val
+(defn ->text
   {:malli/schema
    [:=> [:cat :string] :string]}
   [s]
   (str "'" s "'"))
+
+(defn post
+  {:malli/schema
+   [:=> [:cat :string] :string]}
+  [url]
+  (str "@post('" url "')"))

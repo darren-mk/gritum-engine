@@ -80,7 +80,7 @@
    [:main {:class "max-w-4xl mx-auto px-6 pt-16"}
     intro quickstart authentication reference footer]])
 
-(defn handler [_]
+(defn handler [req]
   (layout/base
    "Documentation | TRID Check"
-   content))
+   content (get-in req [:session :identity])))

@@ -99,5 +99,6 @@
       ;; 수정된 버튼 호출
       (submit-button)]]]])
 
-(defn handler [_]
-  (layout/base "Create Account | TRID Check" content))
+(defn handler [req]
+  (layout/base "Create Account | TRID Check"
+               content (get-in req [:session :identity])))
