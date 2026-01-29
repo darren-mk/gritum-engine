@@ -3,7 +3,7 @@
    [clojure.string :as cstr]
    [gritum.engine.domain.model :as dom]
    [gritum.engine.db.api-key :as db.api-key]
-   [hiccup2.core :as h]
+   [rum.core :as rum]
    [jsonista.core :as json]
    [malli.core :as m]
    [taoensso.timbre :as log]
@@ -36,8 +36,10 @@
 (defn wrap-hiccup [handler]
   (fn [req]
     (let [hiccup (handler req)]
-      (-> hiccup h/html
-          str ruhr/ok))))
+      (if (string? hiccup)
+        (ruhr/ok hiccup)
+        (-> hiccup rum/render-static-markup
+            str ruhr/ok)))))
 
 (defn read-body [handler]
   (fn [{:keys [content-type request-method] :as request}]

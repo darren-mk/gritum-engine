@@ -4,6 +4,7 @@ obj
 .clj-kondo/
 .cpcache/
 .lsp/
+.calva/
 .nrepl-port
 *.xml
 target/
