@@ -8,34 +8,34 @@
 
 (ir/set-prep! (fn [] w/config))
 
-(defn inst []
+(defn in []
   (mdev/start!
    {:report (pretty/reporter)}))
 
-(defn unst []
+(defn un []
   (mdev/stop!))
 
 (defn go []
-  (inst)
+  (in)
   (ir/go))
 
-(defn stop []
+(defn no []
   (ir/halt))
 
-(defn rego []
+(defn re []
   (ir/reset))
 
-(defn create-mig [s]
+(defn cm [s]
   (mig/create s))
 
-(defn run-mig []
+(defn rm []
   (mig/run))
 
 (comment
-  (inst)
-  (unst)
+  (in)
+  (un)
   (go)
-  (stop)
-  (rego)
-  (create-mig "some-name")
-  (run-mig))
+  (no)
+  (re)
+  (cm "some-name")
+  (rm))
