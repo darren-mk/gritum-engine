@@ -3,14 +3,14 @@
 
 ;; --- UI Partials ---
 
-(def signup-header
-  [:div {:class ["sm:mx-auto" "sm:w-full" "sm:max-w-md" "text-center"]}
-   [:h2 {:class ["mt-6" "text-3xl" "font-black" "tracking-tighter" "text-gray-900" "uppercase"]}
-    "Start your free trial"]
-   [:p {:class ["mt-2" "text-sm" "text-gray-600"]}
-    "Already have an account? "
-    [:a {:href "/login" :class ["font-bold" "text-blue-600" "hover:text-blue-500"]}
-     "Log in here"]]])
+#_(def signup-header
+    [:div {:class ["sm:mx-auto" "sm:w-full" "sm:max-w-md" "text-center"]}
+     [:h2 {:class ["mt-6" "text-3xl" "font-black" "tracking-tighter" "text-gray-900" "uppercase"]}
+      "Start your free trial"]
+     [:p {:class ["mt-2" "text-sm" "text-gray-600"]}
+      "Already have an account? "
+      [:a {:href "/login" :class ["font-bold" "text-blue-600" "hover:text-blue-500"]}
+       "Log in here"]]])
 
 (defn input-group [label-text type-name placeholder-text bind-key]
   [:div
@@ -89,14 +89,8 @@
       (input-group "Full Name" "text" "John Doe" "fullName")
       (input-group "Email address" "email" "john@company.com" "email")
       (input-group "Password" "password" "••••••••" "password")
-
-      ;; 약관 동의
       terms-checkbox
-
-      ;; 에러 메시지
-      #_error-display
-
-      ;; 수정된 버튼 호출
+      error-display
       (submit-button)]]]])
 
 (defn handler [req]

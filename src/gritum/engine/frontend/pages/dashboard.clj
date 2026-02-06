@@ -1,7 +1,6 @@
 (ns gritum.engine.frontend.pages.dashboard
   (:require
-   [gritum.engine.frontend.layout :as layout]
-   [jsonista.core :as j]))
+   [gritum.engine.frontend.layout :as layout]))
 
 (defn console-header [user]
   [:section {:class ["mb-12" "flex" "justify-between" "items-end"]}

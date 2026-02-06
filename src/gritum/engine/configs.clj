@@ -1,4 +1,6 @@
-(ns gritum.engine.configs)
+(ns gritum.engine.configs
+  (:require
+   [clojure.edn :as edn]))
 
 (def Env
   [:enum :prod :local])
@@ -6,13 +8,17 @@
 (def Port
   pos-int?)
 
+(def GeminiConfignfig
+  [:map
+   [:ai-api-key :string]
+   [:ai-model :string]])
+
 (def DbConfig
   [:map
    [:dbtype [:enum "postgresql"]]
    [:dbname :string]
    [:host :string]
    [:port [:enum 5432]]
-
    [:user [:enum "gritum_admin"]]
    [:username [:enum "gritum_admin"]]
    [:password :string]])
@@ -30,6 +36,14 @@
   (keyword
    (or (System/getenv "GRITUM_ENV")
        "local")))
+
+(defn- load-config []
+  (edn/read-string (slurp "config.edn")))
+
+(defn- get-config [path]
+  (get-in
+   (load-config)
+   (cons (get-env) path)))
 
 (defn get-port
   {:malli/schema
@@ -54,3 +68,9 @@
      :port (parse-int (System/getenv "DB_PORT") 5432)
      :user user :username user
      :password (or (System/getenv "DB_PASS") "gritum_password")}))
+
+(defn get-gemini-config
+  {:malli/schema [:=> [:cat] GeminiConfignfig]}
+  []
+  {:ai-api-key (get-config [:external :gemini :api-key])
+   :ai-model (get-config [:external :gemini :model])})

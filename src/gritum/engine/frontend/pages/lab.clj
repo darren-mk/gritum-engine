@@ -130,8 +130,7 @@
                :class "text-green-500"} "Ready to Save"]]]]))
 
 (def data-on
-  (let [k :fluffy-souffle
-        signal "$fluffy-souffle"]
+  (let [k :fluffy-souffle]
     [:div {:class ["space-y-2"]}
      [:div {:class ["space-y-4"]}
       [:label {:class ["block" "text-xs" "font-bold"
@@ -159,7 +158,7 @@
        "Reset Value"]]]))
 
 (def tag-id
-  "dancing-on-mars")
+  :dancing-on-mars)
 
 (def stream-basic
   [:div {:class ["flex" "flex-col" "gap-6"]}

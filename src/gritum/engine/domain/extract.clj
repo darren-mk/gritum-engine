@@ -20,24 +20,3 @@
 
 (defn traverse [xml ks]
   (reduce jump xml ks))
-
-(defn all-unique? [coll]
-  (= (count coll)
-     (count (distinct coll))))
-
-(defn ->edn
-  "connect by tag and content, ignore attrs"
-  [xml]
-  (cond (nil? xml) nil
-        (map? xml) {(:tag xml) (->edn (:content xml))}
-        (seq? xml) (->edn (apply vector xml))
-        (vector? xml) (cond (= 1 (count xml))
-                            (let [fst (first xml)
-                                  calc (->edn (first xml))]
-                              (if (:tag fst) [calc] calc))
-                            (all-unique? (map :tag xml))
-                            (reduce (fn [a {:keys [tag content]}]
-                                      (assoc a tag (->edn content))) {} xml)
-                            :else (mapv ->edn xml))
-        (contains? #{"true" "false"} xml) (read-string xml)
-        :else xml))

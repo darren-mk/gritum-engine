@@ -39,6 +39,26 @@
    [:is_active :boolean]
    [:created_at inst?]])
 
+(def Category
+  [:enum
+   :discount-points
+   :application-fee
+   :underwriting-fee
+   :processing-fee
+   :funding-commitment-fee
+   :doc-prep-fee
+   :technology-fee
+   :broker-fee
+   :appraisal-fee
+   :credit-report-fee
+   :flood-monitoring-fee
+   :flood-determination-fee
+   :tax-monitoring-fee
+   :tax-status-research-fee
+   :title-settlement-fee
+   :title-search-fee
+   :pest-inspection-fee])
+
 (def Payee
   [:map
    [:name :string]
@@ -74,7 +94,7 @@
   [:map
    [:id :string]
    [:section Section]
-   [:category :keyword]
+   [:category Category]
    [:label :string]
    [:payee Payee]
    [:payments [:vector Payment]]
