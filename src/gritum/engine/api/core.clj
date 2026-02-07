@@ -8,7 +8,7 @@
    [gritum.engine.configs :as configs]
    [taoensso.timbre :as log]))
 
-(def config
+(defn system-config []
   {:gritum.engine.db/pool (configs/get-db-config)
    :gritum.engine.api/app {:ds (ig/ref :gritum.engine.db/pool)}
    :gritum.engine.api/server {:port (configs/get-port)
@@ -31,7 +31,7 @@
 
 (defn -main
   [& _args]
-  (let [system (ig/init config)]
+  (let [system (ig/init (system-config))]
     (.addShutdownHook
      (Runtime/getRuntime)
      (Thread. #(ig/halt! system)))

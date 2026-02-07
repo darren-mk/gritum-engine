@@ -1,4 +1,4 @@
-(ns gritum.engine.external.gemini
+(ns gritum.engine.external.llm
   (:require
    [clj-http.client :as client]
    [cheshire.core :as json]
@@ -14,7 +14,7 @@
 
 (comment
   (require '[gritum.engine.configs :as configs])
-  (get-all-models (:ai-api-key (configs/get-gemini-config))))
+  (get-all-models (:ai-api-key (configs/get-llm-config))))
 
 (defn get-prompt [file]
   (let [path (str "prompts/" file)]

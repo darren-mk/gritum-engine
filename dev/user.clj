@@ -6,7 +6,7 @@
    [malli.dev :as mdev]
    [malli.dev.pretty :as pretty]))
 
-(ir/set-prep! (fn [] w/config))
+(ir/set-prep! (fn [] w/system-config))
 
 (defn in []
   (mdev/start!

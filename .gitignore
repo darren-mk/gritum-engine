@@ -13,3 +13,6 @@ config.edn
 context.edn
 cookies.txt
 .aider*
+.env
+.env.prod
+.env.local

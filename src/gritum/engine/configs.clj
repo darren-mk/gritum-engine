@@ -1,6 +1,40 @@
 (ns gritum.engine.configs
   (:require
-   [clojure.edn :as edn]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
+
+(defn- read-dotenv []
+  (let [env-file (io/file ".env")]
+    (if (.exists env-file)
+      (with-open [r (io/reader env-file)]
+        (->> (line-seq r)
+             (keep (fn [line]
+                     (let [line (str/trim line)]
+                       (when-not (or (str/blank? line) (str/starts-with? line "#"))
+                         (let [[k v] (str/split line #"=" 2)]
+                           (when (and k v)
+                             [(keyword (str/replace (str/lower-case k) "_" "-")) v]))))))
+             (into {})))
+      {})))
+
+(defn- read-system-env []
+  (->> (System/getenv)
+       (map (fn [[k v]]
+              [(keyword (str/replace (str/lower-case k) "_" "-")) v]))
+       (into {})))
+
+(defn- load-env
+  "ensures reading from env at runtime"
+  []
+  (merge (read-dotenv)
+         (read-system-env)))
+
+(def ^:private env
+  "ensures compute only when actually used"
+  (delay (load-env)))
+
+(defn- env-get [k]
+  (get @env k))
 
 (def Env
   [:enum :prod :local])
@@ -8,7 +42,7 @@
 (def Port
   pos-int?)
 
-(def GeminiConfignfig
+(def LlmConfig
   [:map
    [:ai-api-key :string]
    [:ai-model :string]])
@@ -34,43 +68,33 @@
    [:=> [:cat] Env]}
   []
   (keyword
-   (or (System/getenv "GRITUM_ENV")
+   (or (env-get :gritum-env)
        "local")))
-
-(defn- load-config []
-  (edn/read-string (slurp "config.edn")))
-
-(defn- get-config [path]
-  (get-in
-   (load-config)
-   (cons (get-env) path)))
-
-(defn get-port
-  {:malli/schema
-   [:=> [:cat] Port]}
-  []
-  (Integer/parseInt
-   (or (System/getenv "PORT")
-       "3000")))
 
 (defn parse-int [s default-val]
   (try
     (Integer/parseInt s)
     (catch Exception _ default-val)))
 
+(defn get-port
+  {:malli/schema
+   [:=> [:cat] Port]}
+  []
+  (parse-int (env-get :port) 3000))
+
 (defn get-db-config
   {:malli/schema [:=> [:cat] DbConfig]}
   []
-  (let [user (or (System/getenv "DB_USER") "gritum_admin")]
+  (let [user (env-get :db-user)]
     {:dbtype "postgresql"
-     :dbname (or (System/getenv "DB_NAME") "gritum_db_local")
-     :host (or (System/getenv "DB_HOST") "localhost")
-     :port (parse-int (System/getenv "DB_PORT") 5432)
+     :dbname (env-get :db-name)
+     :host (env-get :db-host)
+     :port (parse-int (env-get :db-port) 5432)
      :user user :username user
-     :password (or (System/getenv "DB_PASS") "gritum_password")}))
+     :password (env-get :db-pass)}))
 
-(defn get-gemini-config
-  {:malli/schema [:=> [:cat] GeminiConfignfig]}
+(defn get-llm-config
+  {:malli/schema [:=> [:cat] LlmConfig]}
   []
-  {:ai-api-key (get-config [:external :gemini :api-key])
-   :ai-model (get-config [:external :gemini :model])})
+  {:ai-api-key (env-get :llm-api-key)
+   :ai-model (env-get :llm-model)})
