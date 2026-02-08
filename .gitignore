@@ -16,3 +16,4 @@ cookies.txt
 .env
 .env.prod
 .env.local
+.envrc

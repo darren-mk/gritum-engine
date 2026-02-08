@@ -1,41 +1,31 @@
 (ns control
   (:require
    [babashka.process :as b]
-   [clojure.java.io :as io]
    [clojure.string :as str]))
 
-(defn- read-dotenv [env]
-  (let [env-file (io/file (str ".env." (name env)))]
-    (if (.exists env-file)
-      (with-open [r (io/reader env-file)]
-        (->> (line-seq r)
-             (keep (fn [line]
-                     (let [line (str/trim line)]
-                       (when-not (or (str/blank? line) (str/starts-with? line "#"))
-                         (let [[k v] (str/split line #"=" 2)]
-                           (when (and k v)
-                             [(keyword (str/replace (str/lower-case k) "_" "-")) v]))))))
-             (into {})))
-      {})))
+(defn- bring! [k]
+  (let [v (System/getenv k)]
+    (if (str/blank? v)
+      (let [msg (str "🚨 CRITICAL CONFIG ERROR: Environment variable '"
+                     k "' is not set.")]
+        (throw (ex-info msg {:variable k})))
+      v)))
 
-(defn get-config [env]
-  (let [{:keys [project-id region image-name image-tag
-                db-user db-pass db-name db-instance
-                db-tier db-version llm-api-key llm-model]}
-        (read-dotenv env)]
-    {:env env
-     :cloud {:project-id project-id
-             :region region}
-     :image {:name image-name
-             :tag image-tag}
-     :db {:version db-version
-          :tier db-tier
-          :instance db-instance
-          :dbname db-name
-          :user db-user
-          :password db-pass}
-     :llm {:api-key llm-api-key
-           :model llm-model}}))
+(defn get-config []
+  {:env (keyword (bring! "GRITUM_ENV"))
+   :cloud {:project-id (bring! "PROJECT_ID")
+           :region (bring! "REGION")}
+   :image {:name (bring! "IMAGE_NAME")
+           :tag (bring! "IMAGE_TAG")}
+   :db {:type (bring! "DB_TYPE")
+        :version (bring! "DB_VERSION")
+        :tier (bring! "DB_TIER")
+        :instance (bring! "DB_INSTANCE")
+        :dbname (bring! "DB_NAME")
+        :user (bring! "DB_USER")
+        :password (bring! "DB_PASSWORD")}
+   :llm {:api-key (bring! "LLM_API_KEY")
+         :model (bring! "LLM_MODEL")}})
 
 (defn provision [{:keys [cloud db] :as _cfg}]
   (let [{:keys [project-id region]} cloud
@@ -80,7 +70,7 @@
 (defn deploy [{:keys [env cloud image db llm]}]
   (let [{:keys [project-id region]} cloud
         {image-name :name :keys [tag]} image
-        {:keys [instance dbname user password]} db
+        {:keys [instance dbname user password type]} db
         {:keys [api-key model]} llm
         remote-tag (format "%s-docker.pkg.dev/%s/images/%s:%s"
                            region project-id image-name tag)
@@ -92,9 +82,10 @@
              "--project" project-id
              "--add-cloudsql-instances" db-conn-name
              "--set-env-vars" (str "GRITUM_ENV=" (name env)
+                                   ",DB_TYPE=" type
                                    ",DB_NAME=" dbname
                                    ",DB_USER=" user
-                                   ",DB_PASS=" password
+                                   ",DB_PASSWORD=" password
                                    ",DB_HOST=/cloudsql/" db-conn-name
                                    ",DB_PORT=5432"
                                    ",LLM_API_KEY=" api-key
@@ -105,12 +96,13 @@
   (case env
     :local (do (println "🏠 running local migrations...")
                (b/shell "clojure" "-M:migrate"))
-    :prod (let [{:keys [dbname user password]} db]
+    :prod (let [{:keys [dbname user password type]} db]
             (println "🏠 running prod migrations via Proxy...")
-            (b/shell {:extra-env {"DB_NAME" dbname
+            (b/shell {:extra-env {"DB_TYPE" type
+                                  "DB_NAME" dbname
                                   "USER" user
                                   "DB_USER" user
-                                  "DB_PASS" password
+                                  "DB_PASSWORD" password
                                   "DB_HOST" "127.0.0.1"
                                   "DB_PORT" "5433"}}
                      "clojure" "-M:migrate"))))
@@ -120,12 +112,10 @@
        " job is done. 🚀"))
 
 (defn -main [& args]
-  (let [[env-str task-str] args]
-    (assert env-str "❌ Environment (prod/local) is required.")
+  (let [[task-str] args]
     (assert task-str "❌ Task is required.")
-    (let [env (keyword env-str)
-          task (keyword task-str)
-          cfg (get-config env)]
+    (let [task (keyword task-str)
+          cfg (get-config)]
       (case task
         :check (println cfg)
         :provision (provision cfg)
@@ -134,13 +124,13 @@
         :press (press cfg)
         :register (register cfg)
         :deploy (deploy cfg)
-        :all (do (migrate cfg)
-                 (build)
-                 (press cfg)
-                 (register cfg)
-                 (deploy cfg))
+        :thru (do (migrate cfg)
+                  (build)
+                  (press cfg)
+                  (register cfg)
+                  (deploy cfg))
         (do (println (str "📖 Usage: bb control.clj "
-                          "[env] [build|press|register|deploy|all]"))
+                          "[build|press|register|deploy|thru]"))
             (System/exit 1)))
       (println (completion-msg task)))))
 

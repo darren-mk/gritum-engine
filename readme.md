@@ -106,6 +106,51 @@ Decisions are biased toward what can realistically be built, deployed, and maint
 
 ---
 
+## Local Development & Environment
+
+This project follows the **12-Factor App** methodology for configuration. We use `direnv` to manage environment variables across different stages (local, production).
+
+### 1. Prerequisites
+
+- **direnv**: [Install direnv](https://direnv.net/docs/installation.html) and hook it into your shell.
+- **Babashka**: Required for task orchestration via `control.clj`.
+
+### 2. Environment Files
+
+The project uses a "switching" strategy. Create these files in the root directory (already ignored by Git):
+
+- `.env.local`: Variables for local development (e.g., local Postgres, dev LLM keys).
+- `.env.prod`: Variables for production/cloud environment (GCP project IDs, Cloud SQL credentials).
+
+### 3. Setup Flow
+
+1. **Initialize the switch**: Create a `.envrc` file:
+
+   # .envrc
+   source_env .env.local
+   # source_env .env.prod (Uncomment this when deploying)
+
+2. **Authorize**: Run `direnv allow` in your terminal.
+
+3. **Launch Editor**: Always launch your editor (Emacs, VS Code, etc.) from this terminal session to ensure it inherits the environment:
+
+   emacs &  # or 'code .'
+
+### 4. Security & Safety
+
+- **Confidentiality**: Never commit `.envrc` or `.env.*` files. They contain production secrets.
+- **Verification**: Check active variables anytime with `echo $GRITUM_ENV`.
+- **Fail-Fast**: The application strictly validates required variables. If a variable is missing, the system will throw a 🚨 CRITICAL CONFIG ERROR and halt immediately.
+
+### 5. Common Tasks
+
+Tasks are managed via Babashka. Run `bb control.clj` to see available commands:
+
+- `bb control.clj check`: Print currently loaded configuration.
+- `bb control.clj migrate`: Run database migrations (uses proxy for prod).
+- `bb control.clj thru`: Full deployment pipeline (migrate -> build -> press -> register -> deploy).
+
+---
 ## License
 
 License to be decided.

@@ -3,10 +3,7 @@
    [gritum.engine.configs :as configs]
    [migratus.core :as migratus]))
 
-(defn get-mig-config
-  {:malli/schema
-   [:=> [:cat] configs/MigrationConfig]}
-  []
+(defn get-mig-config []
   {:store :database
    :migration-dir "migrations"
    :db (configs/get-db-config)})
