@@ -1,20 +1,51 @@
 (ns gritum.engine.domain.parse
   (:require
-   [cheshire.core :as json]
+   [camel-snake-kebab.core :as csk]
    [clojure.string :as cstr]
    [gritum.engine.configs :as configs]
    [gritum.engine.domain.model :as model]
    [gritum.engine.external.llm :as llm]
    [gritum.engine.external.utils :as eut]))
 
-(def le-extraction-template "extract-le-pdf.txt")
-(def cd-extraction-template "extract-cd-pdf.txt")
-(def le-and-cd-combination-template "match-le-and-cd.txt")
+(def le-extraction-template
+  "extract-le.md")
+
+(def cd-extraction-template
+  "extract-cd.md")
 
 (def category-list
   (->> (rest model/Category)
        (map #(str "- " (name %)))
        (cstr/join "\n")))
+
+(def extraction-schema
+  {:type "object"
+   :properties
+   {:doctype {:type "string" :enum ["LE" "CD"]}
+    :items
+    {:type "array"
+     :items {:type "object"
+             :properties {:section {:type "string"
+                                    :enum ["A" "B" "C"]}
+                          :category {:type "string"}
+                          :description {:type "string"}
+                          :amount {:type "number"}}
+             :required ["section" "category" "description" "amount"]}}}
+   :required ["doctype" "items"]})
+
+(defn zero-or-nil? [x]
+  (or (zero? x) (nil? x)))
+
+(defn remove-zero-or-nil [items]
+  (remove #(zero-or-nil? (:amount %)) items))
+
+(defn keywordify-category [items]
+  (mapv #(update % :category csk/->kebab-case-keyword) items))
+
+(defn keywordify-section [items]
+  (mapv #(update % :section
+                 (comp csk/->kebab-case-keyword cstr/lower-case))
+        items))
 
 (defn extract! [api-key model kind file]
   (let [txt-file (case kind
@@ -22,37 +53,28 @@
                    :cd cd-extraction-template)
         prompt (eut/inject-into-txt
                 (llm/get-prompt txt-file)
-                :standard_categories category-list)]
-    (llm/call! api-key model prompt file)))
-
-(defn combine! [ai-api-key ai-model le-result cd-result]
-  (let [template (llm/get-prompt le-and-cd-combination-template)
-        prompt (-> template
-                   (eut/inject-into-txt :standard-categories category-list)
-                   (eut/inject-into-txt :le_json_string (json/generate-string le-result))
-                   (eut/inject-into-txt :cd_json_string (json/generate-string cd-result)))]
-    (llm/call! ai-api-key ai-model prompt nil)))
-
-(defn extract-and-combine! [api-key model le-file cd-file]
-  (let [le-result (extract! api-key model :le le-file)
-        cd-result (extract! api-key model :cd cd-file)]
-    (combine! api-key model le-result cd-result)))
+                :standard-categories category-list)
+        returned (llm/call! api-key model prompt extraction-schema file)]
+    (-> returned
+        (update :doctype (comp keyword cstr/lower-case))
+        (update :items remove-zero-or-nil)
+        (update :items keywordify-section)
+        (update :items keywordify-category))))
 
 (comment
-  (def cd
-    (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)
-          file "/Users/darrenkim/Desktop/201311_cfpb_kbyo_closing-disclosure.pdf"]
-      (extract! ai-api-key ai-model :cd file)))
-  (def le
-    (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)
-          file "/Users/darrenkim/Desktop/201311_cfpb_kbyo_loan-estimate.pdf"]
-      (extract! ai-api-key ai-model :le file)))
-  (def combined
-    (combine! (:ai-api-key (configs/get-llm-config))
-              (:ai-model (configs/get-llm-config))
-              le cd))
-  (def extract-and-combined
-    (extract-and-combine! (:ai-api-key (configs/get-llm-config))
-                          (:ai-model (configs/get-llm-config))
-                          "/Users/darrenkim/Desktop/201311_cfpb_kbyo_loan-estimate.pdf"
-                          "/Users/darrenkim/Desktop/201311_cfpb_kbyo_closing-disclosure.pdf")))
+  (def a
+    (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)]
+      (extract! ai-api-key ai-model :le "data/le-a.pdf")))
+  {:doctype :le,
+   :items [{:section :a,
+            :category :application-fee,
+            :description "Application Fees",
+            :amount 300.0}]}
+  (def b
+    (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)]
+      (extract! ai-api-key ai-model :cd "data/cd-a.pdf")))
+  {:doctype :cd,
+   :items [{:section :a,
+            :category :application-fee,
+            :description "App fees",
+            :amount 320.0}]})
