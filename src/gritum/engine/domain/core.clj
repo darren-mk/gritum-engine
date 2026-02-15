@@ -1,7 +1,7 @@
 (ns gritum.engine.domain.core
   (:require
    [gritum.engine.domain.extract :as extract]
-   [gritum.engine.domain.model :refer [Side Violations]]
+   [gritum.engine.domain.model :refer [Violations]]
    [gritum.engine.domain.rules :as rules]))
 
 (defn process!

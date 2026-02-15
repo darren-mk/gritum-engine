@@ -20,19 +20,6 @@
           :version core/version
           :timestamp (.toString (java.time.Instant/now))}})
 
-(defn- evaluate-handler [req]
-  (let [params (:multipart-params req)
-        le-file (get params "le-file")
-        cd-file (get params "cd-file")]
-    (if (and le-file cd-file)
-      (let [le-str (slurp (:tempfile le-file))
-            cd-str (slurp (:tempfile cd-file))
-            report (core/evaluate-xml le-str cd-str)]
-        {:status 200 :body report})
-      {:status 400
-       :body {:error "Missing files"
-              :details "le-file and cd-file are required"}})))
-
 (defn login-handler [ds]
   (fn [{:keys [body] :as _req}]
     (let [{:keys [email password]} body
@@ -100,8 +87,7 @@
                                    mw/read-body]}
          ["/v1"
           ["/ping" {:get {:responses {200 {:body [:map [:message :string]]}}
-                          :handler pong-handler}}]
-          ["/evaluate" {:post evaluate-handler}]]]
+                          :handler pong-handler}}]]]
         ["/dashboard" {:middleware [mw/wrap-session
                                     mw/wrap-dashboard-cors]}
 
