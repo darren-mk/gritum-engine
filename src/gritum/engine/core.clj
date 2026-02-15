@@ -1,6 +1,6 @@
 (ns gritum.engine.core
-  (:require [gritum.engine.domain.evaluate :as eval]
-            [clojure.data.xml :as xml]))
+  (:require
+   [clojure.data.xml :as xml]))
 
 (defn evaluate-xml
   "Main entry point for evaluating tolerance.
@@ -8,6 +8,6 @@
   [le-xml-str cd-xml-str]
   (let [le-xml (xml/parse-str le-xml-str)
         cd-xml (xml/parse-str cd-xml-str)]
-    (eval/perform le-xml cd-xml)))
+    nil #_(eval/perform le-xml cd-xml)))
 
 (def version "0.1.0-SNAPSHOT")
