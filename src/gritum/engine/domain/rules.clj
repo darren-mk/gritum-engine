@@ -1,11 +1,11 @@
 (ns gritum.engine.domain.rules
   (:require
    [gritum.engine.domain.model
-    :refer [Cost Side Section Violation]]))
+    :refer [Cost Side Section Violation Costs]]))
 
 (defn filter-by
-  {:malli/schema [:=> [:cat Side Section [:vector Cost]]
-                  [:vector Cost]]}
+  {:malli/schema [:=> [:cat Side Section Costs]
+                  Costs]}
   [side section costs]
   (filterv #(and (= side (:side %))
                  (= section (:section %)))
@@ -19,7 +19,7 @@
     (update acc category + amount)
     (assoc acc category amount)))
 
-(defn zero-tolerance
+(defn rule-zero-tolerance
   {:malli/schema [:=> [:cat [:vector Cost]]
                   [:vector Violation]]}
   [costs]
@@ -34,9 +34,18 @@
                                (when (or (not le-amt)
                                          (< le-amt amount))
                                  (conj acc
-                                       {:category category
+                                       {:rule :zero-tolerance
+                                        :category category
                                         :le-amount le-amt
                                         :cd-amount amount
                                         :related-costs (filterv #(= (:category %) category) costs)}))))
                            [] cd-section-a-costs)]
     violations))
+
+(defn pipeline
+  {:malli/schema [:=> [:cat [:vector Cost]]
+                  [:vector Violation]]}
+  [costs]
+  (reduce
+   (fn [acc rule-f] (into acc (rule-f costs)))
+   [] [rule-zero-tolerance]))

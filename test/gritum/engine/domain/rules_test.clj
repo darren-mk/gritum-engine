@@ -1,7 +1,7 @@
 (ns gritum.engine.domain.rules-test
   (:require
    [clojure.test :refer [deftest is testing use-fixtures]]
-   [gritum.engine.domain.model :refer [Cost]]
+   [gritum.engine.domain.model :refer [Costs]]
    [gritum.engine.domain.rules :as sut]
    [malli.core :as m]
    [user :refer [in]]))
@@ -45,7 +45,7 @@
    :description "foo"})
 
 (def sample-costs
-  (m/coerce [:vector Cost]
+  (m/coerce Costs
             [sample-cost-1
              sample-cost-2
              sample-cost-3
@@ -71,12 +71,20 @@
       (is (= {:application-fee 10.0 :underwriting-fee 40.0}
              (reduce sut/condense {} costs))))))
 
-(deftest zero-tolerance-test
+(deftest rule-zero-tolerance-test
   (testing "identifies zero tolerance violations"
-    (is (= [{:category :application-fee,
-             :le-amount 10.0,
-             :cd-amount 20.0,
-             :related-costs
-             [{:section :a, :category :application-fee, :amount 10.0, :side :le, :description "foo"}
-              {:section :a, :category :application-fee, :amount 20.0, :side :cd, :description "foo"}]}]
-           (sut/zero-tolerance sample-costs)))))
+    (is (= [{:rule :zero-tolerance
+             :category :application-fee
+             :le-amount 10.0
+             :cd-amount 20.0
+             :related-costs [sample-cost-1 sample-cost-2]}]
+           (sut/rule-zero-tolerance sample-costs)))))
+
+(deftest pipeline-test
+  (testing "applies all rules"
+    (is (= [{:rule :zero-tolerance
+             :category :application-fee
+             :le-amount 10.0
+             :cd-amount 20.0
+             :related-costs [sample-cost-1 sample-cost-2]}]
+           (sut/pipeline sample-costs)))))

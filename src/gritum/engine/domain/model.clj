@@ -61,9 +61,16 @@
    [:description :string]
    [:amount :double]])
 
+(def Costs
+  [:sequential Cost])
+
 (def Violation
   [:map
+   [:rule :keyword]
    [:category Category]
    [:le-amount :double]
    [:cd-amount :double]
    [:related-costs [:vector Cost]]])
+
+(def Violations
+  [:sequential Violation])

@@ -1,12 +1,11 @@
-(ns gritum.engine.domain.parse
+(ns gritum.engine.domain.extract
   (:require
    [camel-snake-kebab.core :as csk]
    [clojure.string :as cstr]
    [gritum.engine.configs :as configs]
-   [gritum.engine.domain.model :as model :refer [Cost Side]]
+   [gritum.engine.domain.model :as model :refer [Side Costs]]
    [gritum.engine.external.llm :as llm]
-   [gritum.engine.external.utils :as eut]
-   [malli.core :as m]))
+   [gritum.engine.external.utils :as eut]))
 
 (def le-extraction-template
   "extract-le.md")
@@ -22,7 +21,7 @@
 (def extraction-json-schema
   {:type "object"
    :properties
-   {:doctype {:type "string" :enum ["LE" "CD"]}
+   {:side {:type "string" :enum ["LE" "CD"]}
     :items
     {:type "array"
      :items {:type "object"
@@ -32,7 +31,7 @@
                           :description {:type "string"}
                           :amount {:type "number"}}
              :required ["section" "category" "description" "amount"]}}}
-   :required ["doctype" "items"]})
+   :required ["side" "items"]})
 
 (defn zero-or-nil? [x]
   (or (zero? x) (nil? x)))
@@ -59,9 +58,9 @@
         keywordify-category
         include-side-f)))
 
-(defn extract!
+(defn proceed!
   {:malli/schema [:=> [:cat :string :string Side :string]
-                  [:vector Cost]]}
+                  Costs]}
   [api-key ai-model side file]
   (let [txt-file (case side
                    :le le-extraction-template
@@ -69,14 +68,14 @@
         prompt (eut/inject-into-txt
                 (llm/get-prompt txt-file)
                 :standard-categories category-list)
-        {:keys [items]} (llm/call! api-key ai-model prompt
-                                   extraction-json-schema file)]
+        {:keys [_side items]} (llm/call! api-key ai-model prompt
+                                         extraction-json-schema file)]
     (->costs side items)))
 
 (comment
   (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)]
-    (extract! ai-api-key ai-model :le "data/le-a.pdf"))
+    (proceed! ai-api-key ai-model :le "data/le-a.pdf"))
   [{:section :a, :category :application-fee, :description "Application Fees", :amount 300.0, :side :le}]
   (let [{:keys [ai-api-key ai-model]} (configs/get-llm-config)]
-    (extract! ai-api-key ai-model :cd "data/cd-a.pdf"))
+    (proceed! ai-api-key ai-model :cd "data/cd-a.pdf"))
   [{:section :a, :category :application-fee, :description "App fees", :amount 320.0, :side :cd}])
