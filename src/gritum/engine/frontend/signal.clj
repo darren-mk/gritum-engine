@@ -1,4 +1,9 @@
-(ns gritum.engine.frontend.signal)
+(ns gritum.engine.frontend.signal
+  (:require
+   [jsonista.core :as json]))
+
+(defn ->json-obj [m]
+  (json/write-value-as-string m))
 
 (defn bind
   {:malli/schema
@@ -65,3 +70,9 @@
    [:=> [:cat :string] :string]}
   [url]
   (str "@post('" url "')"))
+
+(defn combine
+  [& xs]
+  (->> xs
+       (interpose "; ")
+       (apply str)))

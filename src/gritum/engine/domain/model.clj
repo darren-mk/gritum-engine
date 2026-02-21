@@ -10,13 +10,32 @@
 (def Side
   [:enum :le :cd])
 
-(def Client
+(def FullName
+  [:string {:min 3
+            :max 60}])
+
+(def Password
+  [:and
+   [:string {:min 8
+             :max 80}]
+   [:re {:error/message "password cannot contain whitespace"}
+    #"^\S+$"]])
+
+(def ClientBase
   [:map
-   [:id ClientId]
    [:email Email]
-   [:password_hash {:optional true} :string]
-   [:full_name :string]
-   [:created_at inst?]])
+   [:full_name FullName]])
+
+(def ClientSeed
+  (into ClientBase
+        [[:password Password]]))
+
+(def Client
+  (into
+   ClientBase
+   [[:id ClientId]
+    [:password_hash {:optional true} :string]
+    [:created_at inst?]]))
 
 (def ApiKey
   [:map

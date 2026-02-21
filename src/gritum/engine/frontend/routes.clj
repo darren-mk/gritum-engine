@@ -23,4 +23,5 @@
   ["/hypermedia" {:middleware mws}
    ["/hello" {:get handlers/hello}]
    ["/login" {:post (handlers/login ds)}]
-   ["/logout" {:post handlers/logout}]])
+   ["/logout" {:post handlers/logout}]
+   ["/signup" {:post (handlers/signup ds)}]])

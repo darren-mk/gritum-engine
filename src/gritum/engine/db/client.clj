@@ -1,18 +1,29 @@
 (ns gritum.engine.db.client
   (:require
    [buddy.hashers :as hs]
-   [gritum.engine.domain.model :as dom]
+   [clojure.string :as str]
+   [gritum.engine.domain.model :as dom :refer [ClientSeed]]
+   [malli.core :as m]
+   [malli.error :as me]
    [next.jdbc.result-set :as rs]
    [next.jdbc.sql :as sql]))
 
 (defn register!
-  {:malli/schema [:=> [:cat :any dom/Email :string]
-                  [:maybe dom/Client]]}
-  [ds email raw-pw-str full_name]
-  (->> {:email email
-        :password_hash (hs/derive raw-pw-str)
-        :full_name full_name}
-       (sql/insert! ds :client)))
+  "registers a new client. returns a map of violations
+   if any, otherwise returns the inserted client."
+  [ds email password full_name]
+  (if-let [violation-set
+           (->> {:email (and email (str/trim email))
+                 :full_name (and full_name (str/trim full_name))
+                 :password (and password (str/trim password))}
+                (m/explain ClientSeed)
+                me/humanize)]
+    [:fail violation-set]
+    [:success
+     (->> {:email email
+           :password_hash (hs/derive password)
+           :full_name full_name}
+          (sql/insert! ds :client))]))
 
 (defn get-by-email
   {:malli/schema [:=> [:cat :any :string]

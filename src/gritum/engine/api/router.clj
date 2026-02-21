@@ -33,18 +33,6 @@
   (-> (resp/ok {:message "Logged out"})
       (assoc :session nil)))
 
-(defn signup-handler [ds]
-  (fn [{:keys [body] :as _req}]
-    (let [{:keys [email password full_name]} body]
-      (try
-        (let [{:keys [email]} (db.client/register! ds email password full_name)]
-          (resp/ok {:message "Account created successfully"
-                    :email email}))
-        (catch Exception e
-          (log/error "Signup failed:" (.getMessage e))
-          (resp/bad-request {:error "Signup failed"
-                             :details "Email might already be in use"}))))))
-
 (defn pong-handler [_]
   (resp/ok {:message "pong"}))
 
@@ -77,7 +65,6 @@
        ["/openapi.json"
         {:get {:no-doc true
                :handler (openapi/create-openapi-handler)}}]
-
        ["/api" {:coercion rcmal/coercion
                 :middleware [mw/write-body-as-bytes]}
         ["/health" {:get handle-health}]
@@ -88,24 +75,15 @@
          ["/v1"
           ["/ping" {:get {:responses {200 {:body [:map [:message :string]]}}
                           :handler pong-handler}}]]]
-        ["/dashboard" {:middleware [mw/wrap-session
-                                    mw/wrap-dashboard-cors]}
-
-         ["/signup" {:post {:summary "create client and return email with message"
-                            :responses {200 {:body [:map [:message :string] [:email dom/Email]]}}
-                            :handler (signup-handler ds)}}]
-         ["/login" {:post {:summary "log in as client"
-                           :responses {200 {:body dom/Client}}
-                           :handler (login-handler ds)}}]
-         ["/auth" {:middleware [mw/wrap-require-auth]}
-          ["/api-keys" {:get {:summary "returns api keys for the client"
-                              :responses {200 {:body [:sequential dom/ApiKey]}}
-                              :handler (list-api-keys-handler ds)}
-                        :post {:summary "create a api key for the client"
-                               :response {200 {:body [:map [:message :string [:api_key :string]]]}}
-                               :handler (create-api-key-handler ds)}}]
-          ["/me" {:get me-handler}]
-          ["/logout" {:post logout-handler}]]]]]
+        ["/auth" {:middleware [mw/wrap-require-auth]}
+         ["/api-keys" {:get {:summary "returns api keys for the client"
+                             :responses {200 {:body [:sequential dom/ApiKey]}}
+                             :handler (list-api-keys-handler ds)}
+                       :post {:summary "create a api key for the client"
+                              :response {200 {:body [:map [:message :string [:api_key :string]]]}}
+                              :handler (create-api-key-handler ds)}}]
+         ["/me" {:get me-handler}]
+         ["/logout" {:post logout-handler}]]]]
       {:data {:middleware [mw/wrap-exception
                            midp/wrap-params
                            multp/wrap-multipart-params]}}))))
